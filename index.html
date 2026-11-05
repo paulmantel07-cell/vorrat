@@ -6,6 +6,18 @@
 <title>Vorratsmaster</title>
 <meta name="theme-color" content="#eef2f2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1517" media="(prefers-color-scheme: dark)">
+<script>
+  // Apply the saved light/dark choice before the page paints.
+  (function () {
+    var t = "system";
+    try { t = localStorage.getItem("vorrat.theme") || "system"; } catch (e) {}
+    if (t === "light" || t === "dark") {
+      document.documentElement.setAttribute("data-theme", t);
+      var c = t === "dark" ? "#0d1517" : "#eef2f2";
+      document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.setAttribute("content", c); });
+    }
+  })();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vorratsmaster">
@@ -686,6 +698,15 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
       </div>
       <button type="button" class="link-btn" id="hh-leave" hidden>Haushalt verlassen</button>
       <p class="hint" id="hh-msg" hidden></p>
+    </div>
+
+    <div class="section">
+      <h3>Darstellung</h3>
+      <div class="seg" id="theme-seg" role="group" aria-label="Darstellung">
+        <button type="button" class="chipsel" data-theme-set="system">Wie das Handy</button>
+        <button type="button" class="chipsel" data-theme-set="light">Hell</button>
+        <button type="button" class="chipsel" data-theme-set="dark">Dunkel</button>
+      </div>
     </div>
 
     <div class="section">
@@ -2559,6 +2580,27 @@ $("st-list").addEventListener("click", (e) => {
   renderStapleList();
   toast(s.name + ": Mindestbestand entfernt.", () => { backend.put("staples", s.id, body(s)); S.staples.set(s.id, s); renderStapleList(); });
 });
+const THEME_KEY = "vorrat.theme";
+function getTheme() { try { return localStorage.getItem(THEME_KEY) || "system"; } catch (e) { return "system"; } }
+function applyTheme(t) {
+  const root = document.documentElement;
+  const metas = document.querySelectorAll('meta[name="theme-color"]');
+  if (t === "light" || t === "dark") {
+    root.setAttribute("data-theme", t);
+    metas.forEach((m) => m.setAttribute("content", t === "dark" ? "#0d1517" : "#eef2f2"));
+  } else {
+    root.removeAttribute("data-theme");
+    metas.forEach((m) => m.setAttribute("content", /dark/.test(m.getAttribute("media") || "") ? "#0d1517" : "#eef2f2"));
+  }
+  document.querySelectorAll("#theme-seg [data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === t)));
+}
+$("theme-seg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-theme-set]"); if (!b) return;
+  const t = b.dataset.themeSet;
+  try { localStorage.setItem(THEME_KEY, t); } catch (err) {}
+  applyTheme(t);
+});
+applyTheme(getTheme());
 function renderMenu() {
   renderStapleList();
   const fb = backend && backend.kind === "firebase";
