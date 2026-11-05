@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mein Vorrat</title>
+<title>Vorratsmaster</title>
 <meta name="theme-color" content="#eef2f2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1517" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Vorrat">
+<meta name="apple-mobile-web-app-title" content="Vorratsmaster">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -337,7 +337,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
 <!-- Login -->
 <div class="auth" id="auth" hidden>
   <form id="auth-form" novalidate>
-    <h1>Mein Vorrat</h1>
+    <h1>Vorratsmaster</h1>
     <p class="lead">Melde dich an, damit dein Vorrat auf allen deinen Geräten gleich ist.</p>
     <div class="field">
       <label for="a-mail">E-Mail</label>
@@ -359,7 +359,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
 <div class="wrap">
   <header>
     <div class="title">
-      <h1 id="title">Mein Vorrat</h1>
+      <h1 id="title">Vorratsmaster</h1>
       <div class="sync" id="sync"><span class="dot"></span><span id="sync-text">Lädt …</span></div>
     </div>
     <div class="head-right">
@@ -1200,7 +1200,7 @@ function setView(v) {
   S.view = v;
   $("view-inv").hidden = v !== "inv";
   $("view-shop").hidden = v !== "shop";
-  $("title").textContent = v === "inv" ? "Mein Vorrat" : "Einkaufsliste";
+  $("title").textContent = v === "inv" ? "Vorratsmaster" : "Einkaufsliste";
   $("nav-inv").setAttribute("aria-current", v === "inv" ? "page" : "false");
   $("nav-shop").setAttribute("aria-current", v === "shop" ? "page" : "false");
   window.scrollTo({ top: 0 });
@@ -2590,8 +2590,8 @@ $("hh-copy").addEventListener("click", async () => {
 });
 $("hh-sharebtn").addEventListener("click", async () => {
   if (!S.hh) return;
-  const text = "Komm in unseren gemeinsamen Vorrat! App öffnen: " + location.origin + location.pathname + " , mit deiner E-Mail anmelden, dann unter Konto → Haushalt diesen Code eingeben: " + fmtCode(S.hh.id);
-  if (navigator.share) { try { await navigator.share({ title: "Mein Vorrat", text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  const text = "Komm in unseren gemeinsamen Vorratsmaster! App öffnen: " + location.origin + location.pathname + " , mit deiner E-Mail anmelden, dann unter Konto → Haushalt diesen Code eingeben: " + fmtCode(S.hh.id);
+  if (navigator.share) { try { await navigator.share({ title: "Vorratsmaster", text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
   try { await navigator.clipboard.writeText(text); toast("Einladung kopiert. Füge sie in eine Nachricht ein."); }
   catch (e) { toast("Teilen ging nicht. Schick den Code einfach per Nachricht."); }
 });

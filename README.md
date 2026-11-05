@@ -1,4 +1,4 @@
-# Mein Vorrat
+# Vorratsmaster
 
 Web-App für Kühlschrank, Gefrierschrank und Speisekammer: Live-Barcode-Scanner, Produktnamen von Open Food Facts, MHD und Menge, Einkaufsliste nach Läden, Statistik (verbraucht/weggeworfen), Spracheingabe, gemeinsamer Haushalt für mehrere Personen und optionale KI-Funktionen. Sync zwischen allen Geräten über Firebase.
 
