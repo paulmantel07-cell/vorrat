@@ -2212,7 +2212,7 @@ function scheduleMidnight() {
 
 async function boot() {
   let cfg = null;
-  try { cfg = (await import("./config.js")).firebaseConfig; } catch (e) { cfg = null; }
+  try { cfg = (await import("./config.js?v=" + Date.now())).firebaseConfig; } catch (e) { cfg = null; }
   const configured = cfg && cfg.apiKey && !/^DEIN/.test(cfg.apiKey);
   if (configured) {
     try { backend = await firebaseBackend(cfg); }
@@ -2234,7 +2234,18 @@ async function boot() {
 boot();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => {
+    // Look for a new version whenever the app comes back to the foreground.
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {});
+  // When a new version takes over, reload once so the new files are used.
+  let reloaded = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloaded) return;
+    reloaded = true;
+    location.reload();
+  });
 }
 </script>
 </body>
