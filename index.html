@@ -55,6 +55,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
+html { background: var(--bg); }
 body {
   background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.4;
@@ -166,10 +167,10 @@ ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 /* Bottom navigation */
 .bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
-  background: color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  border-top: 1px solid var(--line);
+  background: var(--bg);
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
 }
+.bar::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 18px; background: linear-gradient(to top, var(--bg), transparent); pointer-events: none; }
 .bar .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; align-items: center; }
 .navbtn { border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px 4px; border-radius: 12px; font-size: 13px; color: var(--muted); position: relative; }
 .navbtn[aria-current="page"] { color: var(--ink); font-weight: 700; background: var(--surface); }
@@ -234,6 +235,39 @@ ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .section { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 10px; }
 .codebox { font-family: var(--display); font-size: 24px; letter-spacing: .06em; font-variant-numeric: tabular-nums; background: var(--bg); border-radius: 12px; padding: 10px 12px; text-align: center; user-select: all; }
 
+/* Date picker */
+.date-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 10px 12px; min-height: 52px; text-align: left; }
+.date-btn b { display: block; font-size: 17px; }
+.date-btn small { display: block; color: var(--muted); font-size: 13px; }
+.date-btn.empty b { color: var(--muted); font-weight: 400; }
+.dp-head { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; }
+.dp-head .x { width: 44px; height: 44px; font-size: 24px; }
+.dp-title { border: 0; background: none; font-family: var(--display); font-size: 21px; font-weight: 800; padding: 6px; border-radius: 10px; }
+.dp-title small { display: block; font-family: var(--body); font-size: 12px; font-weight: 400; color: var(--muted); }
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dp-grid.months { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dp-wd { text-align: center; font-size: 12px; color: var(--muted); padding: 4px 0; }
+.dp-day { height: 44px; border: 0; border-radius: 10px; background: transparent; font-size: 16px; font-variant-numeric: tabular-nums; }
+.dp-day.past { color: var(--muted); }
+.dp-day.today { box-shadow: inset 0 0 0 2px var(--accent); font-weight: 700; }
+.dp-day.sel { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.dp-month { height: 52px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 16px; }
+.dp-month.sel { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.dp-month.past { color: var(--muted); }
+
+/* Form helpers */
+.qty-step { display: grid; grid-template-columns: 52px 1fr 52px; gap: 8px; }
+.qty-step .sq-btn { width: 52px; height: 52px; font-size: 24px; background: var(--bg); }
+.qty-step input { text-align: center; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; border: 1px solid var(--line); background: var(--bg); border-radius: 12px; min-height: 52px; width: 100%; }
+.sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.sugg .chip { border-style: solid; background: var(--accent-soft); border-color: transparent; }
+.open-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg); border-radius: 12px; padding: 8px 8px 8px 12px; min-height: 52px; }
+.open-row > span { font-size: 15px; }
+.st-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.st-item:last-child { border-bottom: 0; }
+.st-item .meta { font-size: 13px; }
+.st-item.low .meta { color: var(--warn); }
+
 /* Statistics */
 .big { font-family: var(--display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
 .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -286,6 +320,7 @@ ol.top li span { color: var(--muted); font-variant-numeric: tabular-nums; }
   background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 14px;
   display: flex; gap: 14px; align-items: center; font-size: 15px; max-width: calc(100% - 32px); width: max-content;
 }
+.scrim:not([hidden]) ~ .toast { bottom: auto; top: calc(12px + env(safe-area-inset-top)); }
 .toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
 footer { font-size: 13px; color: var(--muted); text-align: center; }
 .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -3px; }
@@ -373,11 +408,12 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
   <section id="view-shop" style="display:grid;gap:12px" hidden>
     <div class="card">
       <form class="add-row" id="s-form">
-        <input id="s-add" autocomplete="off" placeholder="Was brauchst du?" aria-label="Artikel für die Einkaufsliste" list="names">
+        <input id="s-add" autocomplete="off" autocorrect="off" placeholder="Was brauchst du?" aria-label="Artikel für die Einkaufsliste">
         <button class="sq-btn primary" type="submit" aria-label="Zur Einkaufsliste hinzufügen">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         </button>
       </form>
+      <div class="sugg" id="s-sugg" hidden></div>
       <div class="seg scroll" id="s-stores" role="group" aria-label="Laden für neue Artikel"></div>
     </div>
     <div id="s-list" style="display:grid;gap:8px"></div>
@@ -436,8 +472,8 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
 
     <div class="field">
       <label for="f-name">Produkt</label>
-      <input id="f-name" list="names" autocomplete="off" placeholder="z. B. Vollmilch 3,5 %" required>
-      <datalist id="names"></datalist>
+      <input id="f-name" autocomplete="off" autocorrect="off" placeholder="z. B. Vollmilch 3,5 %" required>
+      <div class="sugg" id="f-name-sugg" hidden></div>
     </div>
 
     <div class="field">
@@ -445,15 +481,14 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
       <input id="f-size" autocomplete="off" placeholder="z. B. 1 l oder 500 g">
     </div>
 
-    <div class="two">
-      <div class="field">
-        <label for="f-qty">Menge</label>
-        <input id="f-qty" inputmode="decimal" autocomplete="off" value="1">
+    <div class="field">
+      <span class="lbl" id="qty-lbl">Menge</span>
+      <div class="qty-step">
+        <button type="button" class="sq-btn" id="q-minus" aria-label="Weniger">−</button>
+        <input id="f-qty" inputmode="decimal" autocomplete="off" value="1" aria-labelledby="qty-lbl">
+        <button type="button" class="sq-btn" id="q-plus" aria-label="Mehr">+</button>
       </div>
-      <div class="field">
-        <label for="f-unit">Einheit</label>
-        <select id="f-unit"></select>
-      </div>
+      <div class="seg scroll" id="f-unit" role="radiogroup" aria-label="Einheit"></div>
     </div>
 
     <div class="field">
@@ -467,7 +502,11 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
         <input type="radio" name="dtype" id="dt-mhd" value="mhd" checked><label for="dt-mhd">Mindestens haltbar bis</label>
         <input type="radio" name="dtype" id="dt-vd" value="vd"><label for="dt-vd">Zu verbrauchen bis</label>
       </div>
-      <input id="f-date" type="date" aria-label="Datum">
+      <input id="f-date" type="hidden">
+      <button type="button" class="date-btn empty" id="f-date-btn" aria-haspopup="dialog">
+        <span><b id="f-date-text">Datum wählen</b><small id="f-date-sub">Tippen, um den Kalender zu öffnen</small></span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      </button>
       <div class="chips" id="date-chips">
         <label class="chip ai" for="f-photo" id="ai-photo" hidden>Datum fotografieren</label>
         <button type="button" class="chip ai" id="ai-est" hidden>Von KI schätzen</button>
@@ -481,6 +520,20 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
       <input type="file" id="f-photo" accept="image/*" capture="environment" hidden>
       <p class="hint" id="ai-hint" hidden></p>
       <p class="hint" id="dtype-hint">MHD vorbei heißt nicht verdorben: ansehen, riechen, probieren.</p>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Geöffnet</span>
+      <div class="open-row"><span id="open-text">Noch zu</span><button type="button" class="btn small" id="open-btn">Jetzt geöffnet</button></div>
+      <p class="hint" id="open-hint" hidden></p>
+    </div>
+
+    <div class="field">
+      <span class="lbl">Immer im Haus</span>
+      <div class="open-row"><span id="st-text">Aus</span>
+        <div class="stepper"><button type="button" id="st-minus" aria-label="Mindestmenge verringern">−</button><output id="st-min">0</output><button type="button" id="st-plus" aria-label="Mindestmenge erhöhen">+</button></div>
+      </div>
+      <p class="hint">Fällt der Vorrat darunter, kommt es automatisch auf die Einkaufsliste.</p>
     </div>
 
     <p class="hint err" id="form-err" hidden></p>
@@ -518,6 +571,35 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <button type="button" class="btn primary" data-kind="used" data-rebuy="1">Aufgebraucht · auf die Einkaufsliste</button>
     <button type="button" class="btn" data-kind="used">Nur aufgebraucht</button>
     <button type="button" class="btn danger" data-kind="wasted">Weggeworfen</button>
+  </div>
+</div>
+
+<!-- Partial use -->
+<div class="scrim" id="sheet-part" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="p-title">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 id="p-title">Entnehmen</h2>
+      <button type="button" class="x" data-close aria-label="Schließen">×</button>
+    </div>
+    <p class="hint" id="p-sub"></p>
+    <div class="two">
+      <button type="button" class="btn" data-frac="0.25">Ein Viertel</button>
+      <button type="button" class="btn" data-frac="0.5">Die Hälfte</button>
+    </div>
+    <div class="two">
+      <button type="button" class="btn" data-frac="0.75">Drei Viertel</button>
+      <button type="button" class="btn danger" data-frac="1">Alles</button>
+    </div>
+    <div class="field">
+      <span class="lbl" id="p-rest-lbl">Oder: so viel ist noch übrig</span>
+      <div class="qty-step">
+        <button type="button" class="sq-btn" id="p-minus" aria-label="Weniger">−</button>
+        <input id="p-rest" inputmode="decimal" autocomplete="off" aria-labelledby="p-rest-lbl">
+        <button type="button" class="sq-btn" id="p-plus" aria-label="Mehr">+</button>
+      </div>
+    </div>
+    <button type="button" class="btn primary" id="p-apply">Restmenge übernehmen</button>
   </div>
 </div>
 
@@ -607,6 +689,11 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     </div>
 
     <div class="section">
+      <h3>Immer im Haus</h3>
+      <div id="st-list"></div>
+    </div>
+
+    <div class="section">
       <h3>KI-Funktionen</h3>
       <p class="hint" id="ai-status"></p>
     </div>
@@ -626,6 +713,24 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <div class="section">
       <button type="button" class="btn danger" id="logout-btn">Abmelden</button>
       <p class="smallprint">Produktdaten von <a href="https://de.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a> (ODbL). <span id="recaptcha-note" hidden>Diese App ist durch reCAPTCHA geschützt, es gelten die <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Datenschutzerklärung</a> und <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Nutzungsbedingungen</a> von Google.</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- Date picker -->
+<div class="scrim" id="sheet-date" hidden style="z-index:20">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dp-title">
+    <div class="grab"></div>
+    <div class="dp-head">
+      <button type="button" class="x" id="dp-prev" aria-label="Zurück">‹</button>
+      <button type="button" class="dp-title" id="dp-title"></button>
+      <button type="button" class="x" id="dp-next" aria-label="Weiter">›</button>
+    </div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <p class="hint" id="dp-hint"></p>
+    <div class="two">
+      <button type="button" class="btn small" id="dp-none">Ohne Datum</button>
+      <button type="button" class="btn small" id="dp-close">Schließen</button>
     </div>
   </div>
 </div>
@@ -680,7 +785,8 @@ const LS_KEY = "vorrat.demo.v1";
 const LS_STORE = "vorrat.shopStore";
 
 const S = {
-  items: new Map(), products: new Map(), shopping: new Map(), history: new Map(),
+  items: new Map(), products: new Map(), shopping: new Map(), history: new Map(), staples: new Map(), names: [],
+  formOpened: { opened: "", mhdOrig: "" }, formStaple: 0,
   view: "inv", loc: "alle", status: null, q: "",
   editing: null, fromShop: null, locTouched: false,
   loaded: false, hh: null, ai: null, aiState: "off",
@@ -760,9 +866,17 @@ function clean(raw, id) {
     mhd: validDate(it.mhd) ? it.mhd : "",
     dtype: it.dtype === "vd" ? "vd" : "mhd",
     code: String(it.code || "").slice(0, 120),
-    added: String(it.added || "")
+    added: String(it.added || ""),
+    opened: validDate(it.opened) ? it.opened : "",
+    mhdOrig: validDate(it.mhdOrig) ? it.mhdOrig : ""
   };
 }
+function cleanStaple(raw, id) {
+  const it = raw || {};
+  const min = Math.round(Number(it.min));
+  return { id, name: String(it.name || "").slice(0, 120), min: isFinite(min) ? Math.max(0, Math.min(99, min)) : 0 };
+}
+const stapleKey = (name) => "s_" + encodeURIComponent(norm(name)).slice(0, 150);
 function cleanShop(raw, id) {
   const it = raw || {};
   const qty = Math.round(Number(it.qty));
@@ -779,7 +893,7 @@ function cleanHist(raw, id) {
   const it = raw || {};
   return { id, name: String(it.name || "").slice(0, 120), loc: LOCS.some((l) => l.id === it.loc) ? it.loc : "kammer", kind: it.kind === "wasted" ? "wasted" : "used", date: String(it.date || ""), qty: 1 };
 }
-const CLEAN = { items: clean, shopping: cleanShop, history: cleanHist };
+const CLEAN = { items: clean, shopping: cleanShop, history: cleanHist, staples: cleanStaple };
 const body = (o) => { const b = Object.assign({}, o); delete b.id; return b; };
 
 /* Smart sort: guess the storage place from the product name. */
@@ -795,7 +909,7 @@ function guessLoc(name) {
 
 /* ---------- storage backends ---------- */
 function demoBackend() {
-  const COLLS = ["items", "products", "shopping", "history"];
+  const COLLS = ["items", "products", "shopping", "history", "staples"];
   const read = () => {
     try { const o = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); COLLS.forEach((c) => { o[c] = o[c] || {}; }); return o; }
     catch (e) { const o = {}; COLLS.forEach((c) => (o[c] = {})); return o; }
@@ -902,7 +1016,7 @@ async function firebaseBackend(config) {
     if (existing) return existing;
     const id = newCode();
     await fsM.setDoc(fsM.doc(fs, "households", id), { members: [u.uid], emails: [u.email || ""], created: new Date().toISOString() });
-    await copyColls(["users", u.uid], ["households", id], ["items", "products", "shopping", "history"]);
+    await copyColls(["users", u.uid], ["households", id], ["items", "products", "shopping", "history", "staples"]);
     await fsM.setDoc(uref, { householdId: id }, { merge: true });
     return id;
   }
@@ -927,6 +1041,7 @@ async function firebaseBackend(config) {
     sub("products", col("products"), (s) => { S.products = new Map(s.docs.map((d) => [d.id, d.data()])); });
     sub("shopping", col("shopping"), (s) => { S.shopping = new Map(s.docs.map((d) => [d.id, cleanShop(d.data(), d.id)])); });
     sub("history", fsM.query(col("history"), fsM.orderBy("date", "desc"), fsM.limit(3000)), (s) => { S.history = new Map(s.docs.map((d) => [d.id, cleanHist(d.data(), d.id)])); });
+    sub("staples", col("staples"), (s) => { S.staples = new Map(s.docs.map((d) => [d.id, cleanStaple(d.data(), d.id)])); });
     if (hid) {
       unsubs.push(fsM.onSnapshot(fsM.doc(fs, "households", hid), (snap) => {
         const d = snap.exists() ? snap.data() : {};
@@ -969,7 +1084,7 @@ async function firebaseBackend(config) {
     start() {
       authM.onAuthStateChanged(auth, async (u) => {
         stopData();
-        S.items = new Map(); S.products = new Map(); S.shopping = new Map(); S.history = new Map(); S.hh = null;
+        S.items = new Map(); S.products = new Map(); S.shopping = new Map(); S.history = new Map(); S.staples = new Map(); S.hh = null;
         user = u;
         if (!u) { showAuth(); return; }
         showApp();
@@ -1000,7 +1115,7 @@ async function firebaseBackend(config) {
       if (code === hid) throw { code: "self" };
       const target = fsM.doc(fs, "households", code);
       await fsM.updateDoc(target, { members: fsM.arrayUnion(user.uid), emails: fsM.arrayUnion(user.email || "") });
-      if (takeData) await copyColls(["households", hid], ["households", code], ["items", "products", "shopping", "history"]);
+      if (takeData) await copyColls(["households", hid], ["households", code], ["items", "products", "shopping", "history", "staples"]);
       await fsM.setDoc(fsM.doc(fs, "users", user.uid), { householdId: code }, { merge: true });
       const old = hid;
       try { await fsM.updateDoc(fsM.doc(fs, "households", old), { members: fsM.arrayRemove(user.uid), emails: fsM.arrayRemove(user.email || "") }); } catch (e) {}
@@ -1134,8 +1249,8 @@ function renderInv() {
     const ctrl = COUNTABLE.has(it.unit)
       ? '<div class="stepper"><button type="button" data-act="minus" aria-label="Eins entnehmen: ' + esc(it.name) + '">−</button>' +
         '<button type="button" data-act="plus" aria-label="Eins mehr: ' + esc(it.name) + '">+</button></div>'
-      : '<button type="button" class="used" data-act="used">Aufgebraucht</button>';
-    const meta = [locLabel(it.loc), it.size, it.dtype === "vd" && it.mhd ? "zu verbrauchen bis" : ""].filter(Boolean).join(" · ");
+      : '<button type="button" class="used" data-act="part">Entnehmen</button>';
+    const meta = [locLabel(it.loc), it.size, openedLabel(it), it.dtype === "vd" && it.mhd && !it.opened ? "zu verbrauchen bis" : ""].filter(Boolean).join(" · ");
     return '<li class="item ' + d.cls + '" data-id="' + esc(it.id) + '"><span class="stripe"></span><div class="body">' +
       '<div class="row1"><button type="button" class="open" data-act="edit"><span class="name">' + esc(it.name) + '</span>' +
       '<span class="meta">' + esc(meta) + "</span></button>" +
@@ -1186,12 +1301,14 @@ function renderShop() {
 }
 
 function fillNames() {
-  const names = new Set();
-  for (const p of S.products.values()) if (p && p.name) names.add(p.name);
-  for (const it of S.items.values()) names.add(it.name);
-  for (const s of S.shopping.values()) names.add(s.name);
-  const html = [...names].sort((a, b) => a.localeCompare(b, "de")).map((n) => '<option value="' + esc(n) + '"></option>').join("");
-  if ($("names").innerHTML !== html) $("names").innerHTML = html;
+  const names = new Map();
+  const add = (n) => { if (n && !names.has(norm(n))) names.set(norm(n), n); };
+  for (const it of S.items.values()) add(it.name);
+  for (const p of S.products.values()) if (p) add(p.name);
+  for (const s of S.shopping.values()) add(s.name);
+  for (const st of S.staples.values()) add(st.name);
+  for (const h of S.history.values()) add(h.name);
+  S.names = [...names.values()].sort((a, b) => a.localeCompare(b, "de"));
 }
 
 /* ---------- notes & toast ---------- */
@@ -1238,8 +1355,31 @@ function takeOne(it) {
   if (COUNTABLE.has(it.unit) && it.qty > 1) {
     putItem(Object.assign({}, it, { qty: it.qty - 1 }));
     const h = logHistory(it, "used");
-    toast("1 " + it.unit + " " + it.name + " entnommen.", () => { putItem(it); backend.del("history", h); });
+    const su = checkStaple(it.name, { id: it.id, qty: it.qty - 1, unit: it.unit });
+    toast("1 " + it.unit + " " + it.name + " entnommen." + (su ? " Steht jetzt auf der Einkaufsliste." : ""), () => { putItem(it); backend.del("history", h); if (su) su(); });
   } else openConsume(it);
+}
+
+/* "Immer im Haus": keep a minimum stock, refill the shopping list automatically */
+function stockOf(name, ov) {
+  let n = 0, seen = false;
+  const count = (qty, unit) => (COUNTABLE.has(unit) ? qty : (qty > 0 ? 1 : 0));
+  for (const it of S.items.values()) {
+    if (norm(it.name) !== norm(name)) continue;
+    if (ov && ov.id === it.id) { seen = true; if (ov.qty > 0) n += count(ov.qty, ov.unit || it.unit); continue; }
+    n += count(it.qty, it.unit);
+  }
+  if (ov && !seen && ov.qty > 0) n += count(ov.qty, ov.unit);
+  return n;
+}
+function checkStaple(name, ov) {
+  const st = S.staples.get(stapleKey(name));
+  if (!st || !(st.min > 0)) return null;
+  const have = stockOf(name, ov);
+  if (have >= st.min) return null;
+  const onList = [...S.shopping.values()].some((s) => !s.checked && norm(s.name) === norm(name));
+  if (onList) return null;
+  return addToShopping(st.name || name, Math.ceil(st.min - have), lastStoreFor(name));
 }
 
 let consumeItem = null;
@@ -1257,7 +1397,7 @@ $("sheet-consume").addEventListener("click", (e) => {
   closeSheets();
   backend.del("items", it.id);
   const h = logHistory(it, b.dataset.kind);
-  const shopUndo = b.dataset.rebuy ? addToShopping(it.name, 1, lastStoreFor(it.name)) : null;
+  const shopUndo = b.dataset.rebuy ? addToShopping(it.name, 1, lastStoreFor(it.name)) : checkStaple(it.name, { id: it.id, qty: 0 });
   const msg = b.dataset.kind === "wasted" ? it.name + " als weggeworfen notiert." : (shopUndo ? it.name + " steht auf der Einkaufsliste." : it.name + " entfernt.");
   toast(msg, () => { putItem(it); backend.del("history", h); if (shopUndo) shopUndo(); });
 });
@@ -1268,7 +1408,7 @@ function lastStoreFor(name) {
 }
 
 /* ---------- sheets ---------- */
-const SHEETS = ["sheet-edit", "sheet-scan", "sheet-consume", "sheet-shop", "sheet-stats", "sheet-recipes", "sheet-menu"];
+const SHEETS = ["sheet-edit", "sheet-scan", "sheet-consume", "sheet-part", "sheet-shop", "sheet-stats", "sheet-recipes", "sheet-menu"];
 let lastFocus = null;
 function openSheet(id) {
   lastFocus = document.activeElement;
@@ -1277,15 +1417,21 @@ function openSheet(id) {
 }
 function closeSheets() {
   SHEETS.forEach((s) => ($(s).hidden = true));
+  $("sheet-date").hidden = true;
   S.fromShop = null;
   if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
 }
 document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeSheets));
-document.querySelectorAll(".scrim").forEach((s) => s.addEventListener("click", (e) => { if (e.target === s && s.id !== "sheet-ask") closeSheets(); }));
+document.querySelectorAll(".scrim").forEach((s) => s.addEventListener("click", (e) => {
+  if (e.target !== s || s.id === "sheet-ask") return;
+  if (s.id === "sheet-date") { closeDatePicker(); return; }
+  closeSheets();
+}));
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (!$("scanner").hidden) Scanner.close();
   else if (!$("sheet-ask").hidden) $("ask-cancel").click();
+  else if (!$("sheet-date").hidden) closeDatePicker();
   else closeSheets();
 });
 
@@ -1304,8 +1450,134 @@ function ask(title, text, ok, alt) {
   });
 }
 
+/* ---------- date picker ---------- */
+const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const MONTH_SHORT = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."];
+function relDays(n) {
+  if (n === 0) return "heute";
+  if (n === 1) return "morgen";
+  if (n === -1) return "gestern";
+  if (n > 1) return n < 60 ? "in " + n + " Tagen" : "in " + Math.round(n / 30) + " Monaten";
+  return "vor " + (-n) + " Tagen";
+}
+function setDateVal(v) {
+  v = validDate(v) ? v : "";
+  $("f-date").value = v;
+  const btn = $("f-date-btn");
+  btn.classList.toggle("empty", !v);
+  if (!v) {
+    $("f-date-text").textContent = "Ohne Datum";
+    $("f-date-sub").textContent = "Tippen, um ein Datum zu wählen";
+    return;
+  }
+  const d = parseDate(v);
+  $("f-date-text").textContent = d.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  $("f-date-sub").textContent = relDays(daysLeft(v));
+}
+const DP = { y: 0, m: 0, mode: "days" };
+function openDatePicker() {
+  const v = $("f-date").value;
+  const base = validDate(v) ? parseDate(v) : today();
+  DP.y = base.getFullYear(); DP.m = base.getMonth(); DP.mode = "days";
+  renderDatePicker();
+  $("sheet-date").hidden = false;
+  const sel = $("dp-grid").querySelector(".sel, .today");
+  (sel || $("dp-title")).focus({ preventScroll: true });
+}
+function closeDatePicker() {
+  $("sheet-date").hidden = true;
+  $("f-date-btn").focus({ preventScroll: true });
+}
+function renderDatePicker() {
+  const sel = $("f-date").value, t = today(), grid = $("dp-grid");
+  if (DP.mode === "days") {
+    $("dp-title").innerHTML = esc(MONTH_NAMES[DP.m] + " " + DP.y) + "<small>Tippen für Monatsauswahl</small>";
+    $("dp-prev").setAttribute("aria-label", "Vorheriger Monat");
+    $("dp-next").setAttribute("aria-label", "Nächster Monat");
+    grid.className = "dp-grid";
+    const first = new Date(DP.y, DP.m, 1);
+    const lead = (first.getDay() + 6) % 7; // Monday first
+    const days = new Date(DP.y, DP.m + 1, 0).getDate();
+    let html = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((w) => '<span class="dp-wd" aria-hidden="true">' + w + "</span>").join("");
+    for (let i = 0; i < lead; i++) html += "<span></span>";
+    for (let d = 1; d <= days; d++) {
+      const v = iso(new Date(DP.y, DP.m, d));
+      const cls = ["dp-day", v === sel ? "sel" : "", v === iso(t) ? "today" : "", parseDate(v) < t ? "past" : ""].filter(Boolean).join(" ");
+      html += '<button type="button" class="' + cls + '" data-date="' + v + '" aria-label="' + esc(parseDate(v).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })) + '"' + (v === sel ? ' aria-pressed="true"' : "") + ">" + d + "</button>";
+    }
+    grid.innerHTML = html;
+    $("dp-hint").textContent = "Steht auf der Packung nur Monat und Jahr (z. B. 08/2027)? Tippe oben auf den Monat.";
+  } else {
+    $("dp-title").innerHTML = esc(String(DP.y)) + "<small>Nur Monat und Jahr</small>";
+    $("dp-prev").setAttribute("aria-label", "Vorheriges Jahr");
+    $("dp-next").setAttribute("aria-label", "Nächstes Jahr");
+    grid.className = "dp-grid months";
+    const selD = validDate(sel) ? parseDate(sel) : null;
+    grid.innerHTML = MONTH_SHORT.map((name, i) => {
+      const isSel = selD && selD.getFullYear() === DP.y && selD.getMonth() === i;
+      const past = new Date(DP.y, i + 1, 0) < t;
+      return '<button type="button" class="dp-month' + (isSel ? " sel" : "") + (past ? " past" : "") + '" data-month="' + i + '">' + name + "</button>";
+    }).join("");
+    $("dp-hint").textContent = "Gilt dann bis zum letzten Tag des Monats, so ist es bei „mindestens haltbar bis Ende …“ gemeint.";
+  }
+}
+$("f-date-btn").addEventListener("click", openDatePicker);
+$("dp-title").addEventListener("click", () => { DP.mode = DP.mode === "days" ? "months" : "days"; renderDatePicker(); });
+$("dp-prev").addEventListener("click", () => {
+  if (DP.mode === "days") { DP.m--; if (DP.m < 0) { DP.m = 11; DP.y--; } } else DP.y--;
+  renderDatePicker();
+});
+$("dp-next").addEventListener("click", () => {
+  if (DP.mode === "days") { DP.m++; if (DP.m > 11) { DP.m = 0; DP.y++; } } else DP.y++;
+  renderDatePicker();
+});
+$("dp-grid").addEventListener("click", (e) => {
+  const day = e.target.closest("[data-date]");
+  if (day) { setDateVal(day.dataset.date); setAiHint(null); closeDatePicker(); return; }
+  const mo = e.target.closest("[data-month]");
+  if (mo) { setDateVal(iso(new Date(DP.y, Number(mo.dataset.month) + 1, 0))); setAiHint(null); closeDatePicker(); }
+});
+$("dp-none").addEventListener("click", () => { setDateVal(""); closeDatePicker(); });
+$("dp-close").addEventListener("click", closeDatePicker);
+// swipe left/right to change month
+(() => {
+  let x0 = null;
+  $("dp-grid").addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  $("dp-grid").addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) (dx < 0 ? $("dp-next") : $("dp-prev")).click();
+  }, { passive: true });
+})();
+
 /* ---------- edit sheet ---------- */
-$("f-unit").innerHTML = UNITS.map((u) => "<option>" + u + "</option>").join("");
+$("f-unit").innerHTML = UNITS.map((u, i) =>
+  '<input type="radio" name="unit" id="u-' + i + '" value="' + u + '"><label for="u-' + i + '">' + u + "</label>").join("");
+const getUnit = () => { const r = document.querySelector('input[name="unit"]:checked'); return r ? r.value : "Stück"; };
+function setUnit(u) { const i = UNITS.indexOf(UNITS.includes(u) ? u : "Stück"); $("u-" + i).checked = true; }
+const parseQty = (v) => Number(String(v).replace(/\s/g, "").replace(",", "."));
+const roundQty = (q, unit) => (unit === "g" || unit === "ml" ? Math.round(q) : Math.round(q * 100) / 100);
+function qtyStep(unit, v) {
+  if (COUNTABLE.has(unit)) return 1;
+  if (unit === "g" || unit === "ml") return v >= 1000 ? 100 : v >= 100 ? 50 : 10;
+  return v >= 2 ? 0.5 : 0.25;
+}
+function stepQty(input, unit, dir, minZero) {
+  const v = parseQty(input.value) || 0;
+  const st = qtyStep(unit, dir < 0 ? Math.max(0, v - 0.0001) : v);
+  let n = roundQty(v + dir * st, unit);
+  const floor = minZero ? 0 : st;
+  if (n < floor) n = floor;
+  input.value = fmtQty(n);
+}
+$("q-minus").addEventListener("click", () => stepQty($("f-qty"), getUnit(), -1));
+$("q-plus").addEventListener("click", () => stepQty($("f-qty"), getUnit(), 1));
+document.querySelectorAll('input[name="unit"]').forEach((r) => r.addEventListener("change", () => {
+  const u = getUnit(), v = parseQty($("f-qty").value) || 0;
+  if ((u === "g" || u === "ml") && v <= 10) $("f-qty").value = "100";
+  if ((u === "kg" || u === "l") && v > 20) $("f-qty").value = "1";
+  if (COUNTABLE.has(u) && v > 50) $("f-qty").value = "1";
+}));
 $("f-loc").innerHTML = LOCS.map((l) =>
   '<input type="radio" name="loc" id="loc-' + l.id + '" value="' + l.id + '"><label for="loc-' + l.id + '">' + l.label + "</label>").join("");
 document.querySelectorAll('input[name="loc"]').forEach((r) => r.addEventListener("change", () => { S.locTouched = true; $("loc-auto").hidden = true; }));
@@ -1321,13 +1593,20 @@ function setForm(v) {
   $("f-name").value = v.name || "";
   $("f-size").value = v.size || "";
   $("f-qty").value = v.qty != null ? fmtQty(v.qty) : "1";
-  $("f-unit").value = UNITS.includes(v.unit) ? v.unit : "Stück";
+  setUnit(v.unit);
+  S.formOpened = { opened: v.opened || "", mhdOrig: v.mhdOrig || "" };
+  const st = v.name ? S.staples.get(stapleKey(v.name)) : null;
+  S.formStaple = st ? st.min : 0;
+  $("open-hint").hidden = true;
+  $("f-name-sugg").hidden = true;
   setLoc(v.loc || (S.loc !== "alle" ? S.loc : "kuehl"), false);
   $(v.dtype === "vd" ? "dt-vd" : "dt-mhd").checked = true;
-  $("f-date").value = v.mhd || "";
+  setDateVal(v.mhd || "");
   updateDtypeHint();
   $("form-err").hidden = true;
   setAiHint(null);
+  renderOpenRow();
+  renderStapleRow();
 }
 
 function openEdit(item, opts) {
@@ -1353,9 +1632,177 @@ function openEdit(item, opts) {
 }
 
 $("f-name").addEventListener("input", () => {
-  if (S.locTouched || S.editing) return;
+  showSugg($("f-name"), $("f-name-sugg"));
+  if (S.editing) return;
+  const st = S.staples.get(stapleKey($("f-name").value));
+  S.formStaple = st ? st.min : 0; renderStapleRow();
+  if (S.locTouched) return;
   const g = guessLoc($("f-name").value);
   if (g) setLoc(g, true);
+});
+
+/* own name suggestions instead of the browser's list */
+function showSugg(input, box) {
+  const q = norm(input.value);
+  if (!q) { box.hidden = true; box.innerHTML = ""; return; }
+  const res = S.names.filter((n) => norm(n) !== q && norm(n).includes(q))
+    .sort((a, b) => (norm(b).startsWith(q) - norm(a).startsWith(q)) || a.localeCompare(b, "de")).slice(0, 6);
+  box.innerHTML = res.map((n) => '<button type="button" class="chip" data-name="' + esc(n) + '">' + esc(n) + "</button>").join("");
+  box.hidden = !res.length;
+}
+function hideSuggSoon(box) { setTimeout(() => { box.hidden = true; }, 200); }
+$("f-name").addEventListener("blur", () => hideSuggSoon($("f-name-sugg")));
+$("f-name-sugg").addEventListener("pointerdown", (e) => e.preventDefault());
+$("f-name-sugg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-name]"); if (!b) return;
+  const name = b.dataset.name;
+  $("f-name").value = name;
+  $("f-name-sugg").hidden = true;
+  if (!S.editing) {
+    // known product: take over unit, size, place and barcode
+    const p = [...S.products.entries()].find(([, x]) => x && norm(x.name) === norm(name));
+    const last = allItems().find((x) => norm(x.name) === norm(name));
+    const src = p ? Object.assign({ code: p[0] }, p[1]) : last;
+    if (src) {
+      if (!$("f-code").value && src.code) $("f-code").value = src.code;
+      if (!$("f-size").value && src.size) $("f-size").value = src.size;
+      if (src.unit) setUnit(src.unit);
+      if (src.loc) { setLoc(src.loc, false); S.locTouched = true; }
+      $(src.dtype === "vd" ? "dt-vd" : "dt-mhd").checked = true; updateDtypeHint();
+    } else if (!S.locTouched) { const g = guessLoc(name); if (g) setLoc(g, true); }
+    const st = S.staples.get(stapleKey(name));
+    S.formStaple = st ? st.min : 0; renderStapleRow();
+  }
+});
+
+/* opened products keep shorter */
+const OPEN_DAYS = [
+  [["h-milch", "h milch", "haltbare milch", "hafermilch", "sojamilch", "mandelmilch", "reismilch", "milchalternative", "drink"], 5],
+  [["buttermilch", "kefir", "milch"], 4],
+  [["sahne", "schmand", "crème", "creme fraiche", "saure sahne"], 4],
+  [["frischkäse", "mozzarella", "feta", "ricotta", "mascarpone", "hüttenkäse", "burrata"], 5],
+  [["joghurt", "jogurt", "skyr", "pudding", "quark", "dessert"], 4],
+  [["käse", "gouda", "emmentaler", "bergkäse", "parmesan", "cheddar", "tilsiter", "edamer"], 14],
+  [["butter", "margarine"], 21],
+  [["wurst", "aufschnitt", "salami", "schinken", "mortadella", "lyoner", "bacon", "speck"], 5],
+  [["hack", "hähnchen", "geflügel", "pute", "fleisch", "steak", "schnitzel"], 1],
+  [["thunfisch", "fisch", "lachs", "garnelen", "shrimps"], 2],
+  [["saft", "smoothie", "nektar"], 5],
+  [["tomatenmark", "passata", "tomaten", "kokosmilch", "dose", "mais", "bohnen", "kichererbsen"], 3],
+  [["pesto", "sauce", "soße", "dip", "hummus"], 5],
+  [["ketchup", "senf", "mayonnaise", "mayo", "dressing", "remoulade", "essig", "sojasauce"], 60],
+  [["marmelade", "konfitüre", "aufstrich", "nutella", "honig", "sirup"], 30],
+  [["toast", "brot", "brötchen", "wraps", "tortilla"], 5],
+  [["wein", "sekt"], 4],
+  [["cola", "limo", "sprudel", "wasser", "bier", "schorle"], 3],
+  [["nudeln", "pasta", "reis", "mehl", "zucker", "müsli", "haferflocken", "cornflakes", "kaffee", "tee", "kekse", "chips", "nüsse", "gewürz", "salz", "öl"], 90]
+];
+function openedDaysFor(name) {
+  const n = " " + String(name || "").toLowerCase() + " ";
+  for (const [keys, d] of OPEN_DAYS) if (keys.some((k) => n.includes(k))) return d;
+  return null;
+}
+async function openedDays(name, allowAi) {
+  const t = openedDaysFor(name);
+  if (t != null) return { days: t, src: "table" };
+  if (allowAi && aiReady() && name) {
+    try {
+      const r = await backend.aiJson(["Wie viele Tage ist das Lebensmittel '" + name + "' nach dem Öffnen bei richtiger Lagerung typischerweise noch gut? Sei eher vorsichtig. " +
+        'Antworte nur als JSON: {"days": ganze Zahl, "reason": "ein kurzer Satz auf Deutsch"}']);
+      const d = Math.round(Number(r.days));
+      if (isFinite(d) && d >= 0 && d <= 365) return { days: d, src: "ai", reason: String(r.reason || "") };
+    } catch (e) { /* fall back */ }
+  }
+  return { days: 5, src: "default" };
+}
+function openedMhd(mhd, days) {
+  const d = today(); d.setDate(d.getDate() + days);
+  const v = iso(d);
+  return validDate(mhd) && mhd < v ? mhd : v;
+}
+function openedLabel(it) {
+  if (!it.opened) return "";
+  const n = -daysLeft(it.opened);
+  return n <= 0 ? "heute geöffnet" : n === 1 ? "seit gestern offen" : "seit " + n + " Tagen offen";
+}
+function renderOpenRow() {
+  const o = S.formOpened.opened;
+  $("open-text").textContent = o ? "Geöffnet am " + parseDate(o).toLocaleDateString("de-DE", { day: "numeric", month: "short" }) + (daysLeft(o) < 0 ? " (" + relDays(daysLeft(o)) + ")" : "") : "Noch zu";
+  $("open-btn").textContent = o ? "Doch noch zu" : "Jetzt geöffnet";
+}
+$("open-btn").addEventListener("click", async () => {
+  const hint = $("open-hint");
+  if (S.formOpened.opened) {
+    setDateVal(S.formOpened.mhdOrig || $("f-date").value);
+    S.formOpened = { opened: "", mhdOrig: "" };
+    hint.hidden = true;
+    renderOpenRow();
+    return;
+  }
+  const btn = $("open-btn"); btn.disabled = true;
+  hint.hidden = false; hint.className = "hint"; hint.innerHTML = '<span class="spin"></span> Schätze die Haltbarkeit nach dem Öffnen …';
+  const name = $("f-name").value.trim();
+  const o = await openedDays(name, true);
+  btn.disabled = false;
+  const orig = $("f-date").value;
+  S.formOpened = { opened: iso(today()), mhdOrig: orig };
+  const nd = openedMhd(orig, o.days);
+  setDateVal(nd);
+  hint.innerHTML = esc("Geöffnet hält sich das etwa " + o.days + (o.days === 1 ? " Tag" : " Tage") + (o.src === "ai" ? " (KI-Schätzung). " + o.reason : o.src === "default" ? " (allgemeiner Richtwert)." : ".") +
+    (nd === orig ? " Das Packungsdatum ist früher, es bleibt." : " Datum angepasst."));
+  renderOpenRow();
+});
+
+/* minimum stock in the form */
+function renderStapleRow() {
+  const m = S.formStaple;
+  $("st-min").textContent = m;
+  $("st-text").textContent = m ? "Mindestens " + m + " im Haus" : "Aus";
+}
+$("st-minus").addEventListener("click", () => { S.formStaple = Math.max(0, S.formStaple - 1); renderStapleRow(); });
+$("st-plus").addEventListener("click", () => { S.formStaple = Math.min(99, S.formStaple + 1); renderStapleRow(); });
+
+/* partial use for g / kg / ml / l */
+let partItem = null;
+function openPart(it) {
+  partItem = it;
+  $("p-title").textContent = it.name;
+  $("p-sub").textContent = "Noch " + fmtQty(it.qty) + " " + unitLabel(it.qty, it.unit) + " da. Wie viel hast du davon verbraucht?";
+  $("p-rest").value = fmtQty(it.qty);
+  openSheet("sheet-part");
+}
+async function applyPart(newQty) {
+  const it = partItem; if (!it) return;
+  partItem = null;
+  closeSheets();
+  newQty = roundQty(newQty, it.unit);
+  if (!(newQty > 0)) { openConsume(it); return; }
+  if (newQty >= it.qty) { toast("Die Menge ist gleich geblieben."); return; }
+  const n = Object.assign({}, it, { qty: newQty });
+  let extra = "";
+  if (!it.opened) {
+    const o = await openedDays(it.name, false);
+    n.opened = iso(today()); n.mhdOrig = it.mhd; n.mhd = openedMhd(it.mhd, o.days);
+    extra = " Als geöffnet markiert.";
+  }
+  putItem(n);
+  const h = logHistory(it, "used");
+  const su = checkStaple(it.name, { id: it.id, qty: n.qty, unit: n.unit });
+  toast("Noch " + fmtQty(n.qty) + " " + unitLabel(n.qty, n.unit) + " " + it.name + "." + extra + (su ? " Steht auf der Einkaufsliste." : ""),
+    () => { putItem(it); backend.del("history", h); if (su) su(); });
+}
+$("sheet-part").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-frac]"); if (!b || !partItem) return;
+  const f = Number(b.dataset.frac);
+  if (f >= 1) { const it = partItem; partItem = null; closeSheets(); openConsume(it); return; }
+  applyPart(partItem.qty * (1 - f));
+});
+$("p-minus").addEventListener("click", () => { if (partItem) stepQty($("p-rest"), partItem.unit, -1, true); });
+$("p-plus").addEventListener("click", () => { if (partItem) stepQty($("p-rest"), partItem.unit, 1, true); });
+$("p-apply").addEventListener("click", () => {
+  const v = parseQty($("p-rest").value);
+  if (!isFinite(v) || v < 0) { toast("Bitte eine Zahl eingeben, z. B. 250."); return; }
+  applyPart(v);
 });
 
 function setCodeHint(h) {
@@ -1413,7 +1860,7 @@ async function lookupCode(fill) {
     if (fill) {
       if (p.name) $("f-name").value = p.name;
       if (p.size != null) $("f-size").value = p.size;
-      if (p.unit && UNITS.includes(p.unit)) $("f-unit").value = p.unit;
+      if (p.unit && UNITS.includes(p.unit)) setUnit(p.unit);
       if (p.loc) { setLoc(p.loc, false); S.locTouched = true; }
       if (p.qty != null) $("f-qty").value = fmtQty(p.qty);
       $(p.dtype === "vd" ? "dt-vd" : "dt-mhd").checked = true;
@@ -1454,18 +1901,18 @@ document.querySelectorAll('input[name="dtype"]').forEach((r) => r.addEventListen
 
 $("date-chips").addEventListener("click", (e) => {
   const b = e.target.closest(".chip"); if (!b || b.classList.contains("ai")) return;
-  if (b.hasAttribute("data-none")) { $("f-date").value = ""; return; }
+  if (b.hasAttribute("data-none")) { setDateVal(""); return; }
   const d = today();
   if (b.dataset.days) d.setDate(d.getDate() + Number(b.dataset.days));
   if (b.dataset.months) d.setMonth(d.getMonth() + Number(b.dataset.months));
-  $("f-date").value = iso(d);
+  setDateVal(iso(d));
   setAiHint(null);
 });
 
 $("form").addEventListener("submit", (e) => {
   e.preventDefault();
   const name = $("f-name").value.trim();
-  const qty = Number(String($("f-qty").value).replace(/\s/g, "").replace(",", "."));
+  const qty = parseQty($("f-qty").value);
   const err = $("form-err");
   if (!name) { err.textContent = "Bitte gib an, was du einlagerst."; err.hidden = false; $("f-name").focus(); return; }
   if (!isFinite(qty) || qty <= 0) { err.textContent = "Die Menge muss größer als 0 sein, z. B. 1 oder 0,5."; err.hidden = false; $("f-qty").focus(); return; }
@@ -1474,17 +1921,19 @@ $("form").addEventListener("submit", (e) => {
   const item = clean({
     name, qty,
     size: $("f-size").value.trim(),
-    unit: $("f-unit").value,
+    unit: getUnit(),
     loc: locEl ? locEl.value : "kuehl",
     mhd: $("f-date").value,
     dtype: $("dt-vd").checked ? "vd" : "mhd",
     code: normCode($("f-code").value),
-    added: prev ? prev.added : new Date().toISOString()
+    added: prev ? prev.added : new Date().toISOString(),
+    opened: S.formOpened.opened,
+    mhdOrig: S.formOpened.opened ? S.formOpened.mhdOrig : ""
   }, S.editing || uid());
 
   let msg = prev ? "Gespeichert." : item.name + " eingelagert.";
   // Same product, same date, same place: add up instead of a second row.
-  const twin = allItems().find((x) => x.id !== item.id && norm(x.name) === norm(item.name) && x.mhd === item.mhd && x.loc === item.loc && x.unit === item.unit);
+  const twin = allItems().find((x) => x.id !== item.id && norm(x.name) === norm(item.name) && x.mhd === item.mhd && x.loc === item.loc && x.unit === item.unit && x.opened === item.opened);
   if (twin) {
     putItem(Object.assign({}, twin, { qty: twin.qty + item.qty }));
     if (prev) backend.del("items", prev.id);
@@ -1503,6 +1952,15 @@ $("form").addEventListener("submit", (e) => {
   if (S.fromShop) {
     const s = S.shopping.get(S.fromShop);
     if (s) backend.del("shopping", s.id);
+  }
+  // minimum stock
+  const sk = stapleKey(item.name), oldSt = S.staples.get(sk);
+  if (S.formStaple > 0 && (!oldSt || oldSt.min !== S.formStaple || oldSt.name !== item.name)) {
+    backend.put("staples", sk, { name: item.name, min: S.formStaple });
+    S.staples.set(sk, cleanStaple({ name: item.name, min: S.formStaple }, sk));
+    if (checkStaple(item.name, { id: (twin || item).id, qty: twin ? twin.qty + item.qty : item.qty, unit: item.unit })) msg += " Unter dem Mindestbestand, steht auf der Einkaufsliste.";
+  } else if (!S.formStaple && oldSt) {
+    backend.del("staples", sk);
   }
   closeSheets();
   toast(msg);
@@ -1535,6 +1993,7 @@ $("list").addEventListener("click", (e) => {
   if (act === "plus") putItem(Object.assign({}, it, { qty: it.qty + 1 }));
   if (act === "minus") takeOne(it);
   if (act === "used") openConsume(it);
+  if (act === "part") openPart(it);
 });
 $("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-loc]"); if (!b) return; S.loc = b.dataset.loc; renderInv(); });
 $("st-bad").addEventListener("click", () => { S.status = S.status === "bad" ? null : "bad"; renderInv(); });
@@ -1581,7 +2040,17 @@ $("s-form").addEventListener("submit", (e) => {
   if (m1) { qty = Number(m1[1]); name = m1[2]; } else if (m2) { qty = Number(m2[2]); name = m2[1]; }
   const undo = addToShopping(name, qty, S.shopStore);
   $("s-add").value = "";
+  $("s-sugg").hidden = true;
   toast(name + " hinzugefügt.", undo);
+});
+$("s-add").addEventListener("input", () => showSugg($("s-add"), $("s-sugg")));
+$("s-add").addEventListener("blur", () => hideSuggSoon($("s-sugg")));
+$("s-sugg").addEventListener("pointerdown", (e) => e.preventDefault());
+$("s-sugg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-name]"); if (!b) return;
+  $("s-add").value = b.dataset.name;
+  $("s-sugg").hidden = true;
+  $("s-form").requestSubmit();
 });
 $("s-stores").addEventListener("click", (e) => {
   const b = e.target.closest("[data-store]"); if (!b) return;
@@ -1816,7 +2285,7 @@ $("f-photo").addEventListener("change", async (e) => {
   const r = await runAi([prompt, { inlineData: { mimeType: "image/jpeg", data } }], (msg) => setAiHint({ cls: "err", html: esc(msg) }));
   if (!r) return;
   if (r.date && validDate(r.date)) {
-    $("f-date").value = r.date;
+    setDateVal(r.date);
     $(r.type === "vd" ? "dt-vd" : "dt-mhd").checked = true;
     updateDtypeHint();
     setAiHint({ cls: "good", html: "Erkannt: „" + esc(r.seen || fmtDate(r.date)) + "“ → " + esc(fmtDate(r.date)) + ". Bitte kurz prüfen." });
@@ -1839,7 +2308,7 @@ $("ai-est").addEventListener("click", async () => {
   const days = Math.round(Number(r.days));
   if (!isFinite(days) || days < 0 || days > 3650) { setAiHint({ cls: "err", html: "Die KI konnte das nicht schätzen." }); return; }
   const d = today(); d.setDate(d.getDate() + days);
-  $("f-date").value = iso(d);
+  setDateVal(iso(d));
   if (r.type === "vd") { $("dt-vd").checked = true; updateDtypeHint(); }
   setAiHint({ html: "Geschätzt: etwa " + days + " Tage. " + esc(r.reason || "") + " Das ist eine Schätzung, das Datum auf der Packung gilt." });
 });
@@ -2074,7 +2543,24 @@ document.addEventListener("visibilitychange", () => {
 
 /* ---------- menu: household, AI status, backup, logout ---------- */
 $("menu-btn").addEventListener("click", () => { renderMenu(); openSheet("sheet-menu"); });
+function renderStapleList() {
+  const list = [...S.staples.values()].filter((s) => s.min > 0).sort((a, b) => a.name.localeCompare(b.name, "de"));
+  $("st-list").innerHTML = list.length ? list.map((s) => {
+    const have = stockOf(s.name);
+    return '<div class="st-item' + (have < s.min ? " low" : "") + '"><div><div>' + esc(s.name) + '</div><div class="meta">mindestens ' + s.min + " · da: " + have + "</div></div>" +
+      '<button type="button" class="x" data-del="' + esc(s.id) + '" aria-label="' + esc(s.name) + ' nicht mehr immer im Haus">×</button></div>';
+  }).join("") : '<p class="hint">Noch nichts festgelegt. Öffne ein Produkt und stell bei „Immer im Haus“ eine Mindestmenge ein.</p>';
+}
+$("st-list").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  const s = S.staples.get(b.dataset.del); if (!s) return;
+  backend.del("staples", s.id);
+  S.staples.delete(s.id);
+  renderStapleList();
+  toast(s.name + ": Mindestbestand entfernt.", () => { backend.put("staples", s.id, body(s)); S.staples.set(s.id, s); renderStapleList(); });
+});
 function renderMenu() {
+  renderStapleList();
   const fb = backend && backend.kind === "firebase";
   const hh = S.hh;
   $("hh-sec").hidden = !fb;
@@ -2143,7 +2629,7 @@ $("logout-btn").addEventListener("click", async () => { closeSheets(); await bac
 $("exp-btn").addEventListener("click", () => {
   const data = {
     app: "mein-vorrat", version: 2, exported: new Date().toISOString(),
-    items: allItems(), shopping: [...S.shopping.values()], history: [...S.history.values()],
+    items: allItems(), shopping: [...S.shopping.values()], history: [...S.history.values()], staples: [...S.staples.values()],
     products: Object.fromEntries(S.products)
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -2187,6 +2673,11 @@ function importData(data) {
     backend.put("history", h.id, body(h)); n++;
   }
   for (const [k, p] of Object.entries(products || {})) { const key = codeKey(k); if (key && p && typeof p === "object") backend.put("products", key, p); }
+  for (const raw of (data && Array.isArray(data.staples) ? data.staples : [])) {
+    if (!raw || !raw.name) continue;
+    const st = cleanStaple(raw, stapleKey(raw.name));
+    if (st.min > 0) { backend.put("staples", st.id, body(st)); n++; }
+  }
   if (!n) throw new Error("empty");
   return n;
 }
