@@ -1,6 +1,6 @@
 # Mein Vorrat
 
-Web-App für Kühlschrank, Gefrierschrank und Speisekammer: Live-Barcode-Scanner, Produktnamen von Open Food Facts, MHD und Menge, Sync zwischen allen Geräten über Firebase.
+Web-App für Kühlschrank, Gefrierschrank und Speisekammer: Live-Barcode-Scanner, Produktnamen von Open Food Facts, MHD und Menge, Einkaufsliste nach Läden, Statistik (verbraucht/weggeworfen), Spracheingabe, gemeinsamer Haushalt für mehrere Personen und optionale KI-Funktionen. Sync zwischen allen Geräten über Firebase.
 
 ## Einrichtung (einmalig, ca. 15 Minuten, kostenlos)
 
@@ -42,14 +42,35 @@ Firebase → **Security → Authentication → Settings** (Einstellungen) → **
 - **Android (Chrome):** Adresse öffnen → Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
 - **iPhone (Safari):** Adresse öffnen → Teilen-Symbol → „Zum Home-Bildschirm“.
 - Beim ersten Start „Neues Konto anlegen“. Auf jedem weiteren Gerät mit derselben E-Mail anmelden.
-- Wer den Vorrat mitbenutzen soll (z. B. Partnerin oder Partner), meldet sich mit demselben Konto an.
+- Wer den Vorrat mitbenutzen soll, legt ein eigenes Konto an und tritt deinem Haushalt bei (siehe unten).
+
+## Gemeinsamer Haushalt (mehrere Personen)
+Jede Person meldet sich mit ihrer eigenen E-Mail an. Personen-Symbol oben rechts → **Haushalt**: Dort steht dein Einladungscode (12 Zeichen). Die andere Person gibt ihn bei sich unter „Einem anderen Haushalt beitreten“ ein. Danach seht ihr denselben Vorrat, dieselbe Einkaufsliste und dieselbe Statistik.
+
+**Voraussetzung:** Die Regeln aus `firestore.rules` müssen in Firebase eingetragen sein (**Databases & Storage → Firestore → Rules**, alles ersetzen, **Publish**). Solange die alten Regeln gelten, läuft die App wie bisher, nur ohne gemeinsamen Haushalt. Beim ersten Start mit den neuen Regeln werden deine bisherigen Einträge automatisch übernommen.
+
+## KI-Funktionen (optional, kostenlos, ca. 15 Minuten)
+Datum vom Foto ablesen, Haltbarkeit schätzen, „Ist das noch gut?“ bei abgelaufenen Produkten und Rezeptideen aus dem Vorrat. Die Anfragen laufen über **Firebase AI Logic** mit dem kostenlosen Kontingent der Gemini Developer API (Tageslimit, für einen Haushalt reicht es). Geschützt wird das mit **App Check**, damit niemand anderes dein Kontingent verbraucht.
+
+1. **reCAPTCHA-Schlüssel anlegen:** https://www.google.com/recaptcha/admin/create öffnen. Label z. B. `Vorrat`, Typ **„Punktzahlbasiert (v3)“** bzw. „Score based (v3)“, Domain `DEIN-NAME.github.io` → absenden. Du bekommst einen **Websiteschlüssel** (Site key) und einen **geheimen Schlüssel** (Secret key).
+2. **App Check:** Firebase → **Security → App Check** → Reiter **Apps** → deine Web-App → **reCAPTCHA** → den **geheimen Schlüssel** einfügen → **Speichern**. Erzwinge (enforce) App Check **nicht** für Firestore oder Authentication, nur AI Logic braucht es.
+3. **AI Logic:** Firebase → **AI Services → AI Logic** → **Get started** → **Gemini Developer API** wählen und den Assistenten abschließen.
+4. **config.js:** Den **Websiteschlüssel** (nicht den geheimen!) als `recaptchaSiteKey` eintragen, z. B. direkt nach der Zeile mit `appId`:
+   ```
+   recaptchaSiteKey: "6Lc…",
+   ```
+   Optional `aiModel: "gemini-3.1-flash-lite"` (Standard) durch ein anderes Modell ersetzen.
+5. App neu laden. Die KI-Knöpfe erscheinen beim Datum und oben das Koch-Symbol für Rezepte.
+
+## Angebote und Preise
+Supermärkte bieten keine offene Schnittstelle für ihre Angebote. Auf der Einkaufsliste öffnet „Aktuelle Angebote suchen“ deshalb die Suche bei marktguru mit den echten Prospekt-Angeboten.
 
 ### Optional: Fremde Anmeldungen sperren
-Die Adresse ist öffentlich. Fremde sehen deine Daten nie (das verhindern die Regeln), könnten aber eigene Konten anlegen. Wenn dein Konto steht: Firebase → **Authentication → Einstellungen → Nutzeraktionen** → „Registrierung aktivieren“ ausschalten.
+Die Adresse ist öffentlich. Fremde sehen deine Daten nie (das verhindern die Regeln), könnten aber eigene Konten anlegen. Wenn alle Personen im Haushalt ein Konto haben: Firebase → **Authentication → Einstellungen → Nutzeraktionen** → „Registrierung aktivieren“ ausschalten. Für eine neue Person schaltest du es kurz wieder ein.
 
 ## Gut zu wissen
 - Die Werte in `config.js` sind nicht geheim. Geschützt werden die Daten durch die Firestore-Regeln.
 - Die App funktioniert auch offline und gleicht sich ab, sobald wieder Netz da ist.
 - Solange in `config.js` noch `DEIN_API_KEY` steht, läuft die App im Demo-Modus (Daten nur im Browser).
-- Backup: Personen-Symbol oben rechts → „Backup herunterladen“.
-- Nach einer Änderung an den Dateien in `sw.js` die Zahl bei `CACHE = "vorrat-v1"` erhöhen, damit alle Geräte die neue Version laden.
+- Backup: Personen-Symbol oben rechts → „Backup herunterladen“. Dort lässt sich auch ein Backup-Text aus dem Gemini-VorratsMaster einspielen.
+- Nach einer Änderung an den Dateien in `sw.js` die Zahl bei `CACHE = "vorrat-v2"` erhöhen, damit alle Geräte die neue Version laden.
