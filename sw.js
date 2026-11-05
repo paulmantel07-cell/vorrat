@@ -1,6 +1,6 @@
 // Offline-Unterstützung: App-Dateien werden zwischengespeichert, damit "Mein Vorrat" auch ohne Netz startet.
 // Nach einer Änderung an der App diese Nummer erhöhen, damit alle Geräte die neue Version laden.
-const CACHE = "vorrat-v4";
+const CACHE = "vorrat-v5";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 const CDN = ["www.gstatic.com", "cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 
@@ -23,13 +23,22 @@ self.addEventListener("fetch", (e) => {
 
   // Eigene Dateien: erst Netz (immer aktuell), bei Offline aus dem Speicher.
   if (url.origin === self.location.origin) {
+    // "no-cache": always ask GitHub whether the file changed (cheap 304 if not), so updates arrive at once.
+    const fresh = req.mode === "navigate"
+      ? fetch(req.url, { cache: "no-cache", credentials: "same-origin" })
+      : fetch(req, { cache: "no-cache" });
     e.respondWith(
-      fetch(req)
+      fresh
         .then((res) => {
-          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+          if (res.ok) {
+            const copy = res.clone();
+            // store without "?v=…" so the cache does not grow with every start
+            const key = req.mode === "navigate" || !url.search ? req : new Request(url.origin + url.pathname);
+            caches.open(CACHE).then((c) => c.put(key, copy));
+          }
           return res;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match("./index.html")))
+        .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("./index.html")))
     );
     return;
   }
