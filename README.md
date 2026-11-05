@@ -50,16 +50,16 @@ Jede Person meldet sich mit ihrer eigenen E-Mail an. Personen-Symbol oben rechts
 **Voraussetzung:** Die Regeln aus `firestore.rules` müssen in Firebase eingetragen sein (**Databases & Storage → Firestore → Rules**, alles ersetzen, **Publish**). Solange die alten Regeln gelten, läuft die App wie bisher, nur ohne gemeinsamen Haushalt. Beim ersten Start mit den neuen Regeln werden deine bisherigen Einträge automatisch übernommen.
 
 ## KI-Funktionen (optional, kostenlos, ca. 15 Minuten)
-Datum vom Foto ablesen, Haltbarkeit schätzen, „Ist das noch gut?“ bei abgelaufenen Produkten und Rezeptideen aus dem Vorrat. Die Anfragen laufen über **Firebase AI Logic** mit dem kostenlosen Kontingent der Gemini Developer API (Tageslimit, für einen Haushalt reicht es). Geschützt wird das mit **App Check**, damit niemand anderes dein Kontingent verbraucht.
+Datum vom Foto ablesen, Haltbarkeit schätzen, „Ist das noch gut?“ bei abgelaufenen Produkten und Rezeptideen aus dem Vorrat. Die Anfragen laufen über **Firebase AI Logic** mit dem kostenlosen Kontingent der Gemini Developer API (Tageslimit, für einen Haushalt reicht es). Geschützt wird das mit **App Check** und einem reCAPTCHA-Schlüssel aus Google Cloud Fraud Defense, damit niemand anderes dein Kontingent verbraucht.
 
-1. **reCAPTCHA-Schlüssel anlegen:** https://www.google.com/recaptcha/admin/create öffnen. Label z. B. `Vorrat`, Typ **„Punktzahlbasiert (v3)“** bzw. „Score based (v3)“, Domain `DEIN-NAME.github.io` → absenden. Du bekommst einen **Websiteschlüssel** (Site key) und einen **geheimen Schlüssel** (Secret key).
-2. **App Check:** Firebase → **Security → App Check** → Reiter **Apps** → deine Web-App → **reCAPTCHA** → den **geheimen Schlüssel** einfügen → **Speichern**. Erzwinge (enforce) App Check **nicht** für Firestore oder Authentication, nur AI Logic braucht es.
+1. **reCAPTCHA-Schlüssel anlegen (Google Cloud „Fraud Defense“):** https://console.cloud.google.com/security/recaptcha öffnen, oben das Firebase-Projekt auswählen, die API aktivieren falls gefragt, **Create key** → Typ **Website**, Domain `DEIN-NAME.github.io`, „Use checkbox challenge“ **nicht** ankreuzen → erstellen. Die **Schlüssel-ID** (beginnt meist mit `6L`) ist dein Websiteschlüssel.
+2. **App Check:** Firebase → **Security → App Check** → Reiter **Apps** → deine Web-App → **reCAPTCHA Enterprise** → die Schlüssel-ID einfügen → **Speichern**. Erzwinge (enforce) App Check **nicht** für Firestore oder Authentication, nur AI Logic braucht es.
 3. **AI Logic:** Firebase → **AI Services → AI Logic** → **Get started** → **Gemini Developer API** wählen und den Assistenten abschließen.
 4. **config.js:** Den **Websiteschlüssel** (nicht den geheimen!) als `recaptchaSiteKey` eintragen, z. B. direkt nach der Zeile mit `appId`:
    ```
    recaptchaSiteKey: "6Lc…",
    ```
-   Optional `aiModel: "gemini-3.1-flash-lite"` (Standard) durch ein anderes Modell ersetzen.
+   Optional `aiModel: "gemini-3.1-flash-lite"` (Standard) durch ein anderes Modell ersetzen. Hast du einen alten reCAPTCHA-v3-Schlüssel (mit geheimem Schlüssel in App Check), ergänze `recaptchaType: "v3",`.
 5. App neu laden. Die KI-Knöpfe erscheinen beim Datum und oben das Koch-Symbol für Rezepte.
 
 ## Angebote und Preise

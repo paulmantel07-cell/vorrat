@@ -836,8 +836,10 @@ async function firebaseBackend(config) {
   const cfg = Object.assign({}, config);
   const dbId = String(cfg.databaseId || "(default)").trim() || "(default)";
   const siteKey = String(cfg.recaptchaSiteKey || "").trim();
+  // Keys from Google Cloud "Fraud Defense" are reCAPTCHA Enterprise keys (default). Old v3 keys: recaptchaType: "v3".
+  const captchaV3 = String(cfg.recaptchaType || "").toLowerCase() === "v3";
   const aiModel = String(cfg.aiModel || DEFAULT_AI_MODEL).trim();
-  ["databaseId", "recaptchaSiteKey", "aiModel"].forEach((k) => delete cfg[k]);
+  ["databaseId", "recaptchaSiteKey", "recaptchaType", "aiModel"].forEach((k) => delete cfg[k]);
 
   const [appM, authM, fsM] = await Promise.all([
     import(FB + "firebase-app.js"),
@@ -851,7 +853,8 @@ async function firebaseBackend(config) {
   if (siteKey) {
     try {
       const acM = await import(FB + "firebase-app-check.js");
-      acM.initializeAppCheck(app, { provider: new acM.ReCaptchaV3Provider(siteKey), isTokenAutoRefreshEnabled: true });
+      const provider = captchaV3 ? new acM.ReCaptchaV3Provider(siteKey) : new acM.ReCaptchaEnterpriseProvider(siteKey);
+      acM.initializeAppCheck(app, { provider, isTokenAutoRefreshEnabled: true });
       appCheckOk = true;
       $("recaptcha-note").hidden = false;
     } catch (e) { appCheckOk = false; }
