@@ -1,6 +1,6 @@
 // Offline-Unterstützung: App-Dateien werden zwischengespeichert, damit "Mein Vorrat" auch ohne Netz startet.
 // Nach einer Änderung an der App diese Nummer erhöhen, damit alle Geräte die neue Version laden.
-const CACHE = "vorrat-v3";
+const CACHE = "vorrat-v4";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 const CDN = ["www.gstatic.com", "cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 

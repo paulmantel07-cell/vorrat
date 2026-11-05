@@ -5,5 +5,6 @@ export const firebaseConfig = {
   projectId: "vorratsmasteclaude",
   storageBucket: "vorratsmasteclaude.firebasestorage.app",
   messagingSenderId: "212471932839",
-  appId: "1:212471932839:web:4240770aa0bae180c03882"
+  appId: "1:212471932839:web:4240770aa0bae180c03882",
+  recaptchaSiteKey: "6LeO2BEuAAAAALcwavFk82T492hw_GmJvEFRxMof"
 };
