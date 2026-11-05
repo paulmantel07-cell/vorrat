@@ -1,14 +1,14 @@
 {
-  "name": "Mein Vorrat",
-  "short_name": "Vorrat",
+  "name": "Vorratsmaster",
+  "short_name": "Vorratsmaster",
   "description": "Kühlschrank, Gefrierschrank und Speisekammer mit MHD und Barcode-Scanner",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#eef2f2",
-  "theme_color": "#eef2f2",
+  "background_color": "#0d1517",
+  "theme_color": "#0d1517",
   "icons": [
     {
       "src": "icon-192.png",
