@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mein Vorrat</title>
+<meta name="theme-color" content="#1d5f86">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vorrat">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Layout: one-column phone app. Summary first, then location tabs, list sorted by date, fixed action bar at the bottom. */
+:root {
+  --bg: #eef2f2;
+  --surface: #ffffff;
+  --ink: #142023;
+  --muted: #5a696c;
+  --line: #d6dfe0;
+  --accent: #1d5f86;
+  --accent-ink: #ffffff;
+  --bad: #b8322a;
+  --bad-soft: #f8e1df;
+  --warn: #9a5b00;
+  --warn-soft: #fbeccf;
+  --ok: #2b6e4a;
+  --ok-soft: #dcefe3;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1517; --surface: #172225; --ink: #e5eeef; --muted: #98a9ac; --line: #2a393c;
+    --accent: #72b4dc; --accent-ink: #08202e;
+    --bad: #f07a6f; --bad-soft: #3a1f1d; --warn: #f0b552; --warn-soft: #382a12; --ok: #6cc996; --ok-soft: #173326;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1517; --surface: #172225; --ink: #e5eeef; --muted: #98a9ac; --line: #2a393c;
+  --accent: #72b4dc; --accent-ink: #08202e;
+  --bad: #f07a6f; --bad-soft: #3a1f1d; --warn: #f0b552; --warn-soft: #382a12; --ok: #6cc996; --ok-soft: #173326;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap {
+  max-width: 640px; margin: 0 auto; display: grid; gap: 14px;
+  padding: calc(16px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+.head-right { display: flex; align-items: center; gap: 8px; }
+.sync { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sync.ok .dot { background: var(--ok); }
+.sync.warn .dot { background: var(--warn); }
+.icon-btn { border: 1px solid var(--line); background: var(--surface); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 12px; text-align: left; display: grid; gap: 2px;
+}
+.stat b { font-family: var(--display); font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); }
+.stat.bad b { color: var(--bad); }
+.stat.warn b { color: var(--warn); }
+.stat[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.stat:disabled { cursor: default; }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 8px 14px; font-size: 15px; display: flex; gap: 6px; align-items: center;
+}
+.tab .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .75; }
+
+.search { position: relative; }
+.search input {
+  width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 12px;
+  padding: 11px 14px 11px 40px; font-size: 16px;
+}
+.search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+.note { font-size: 14px; padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--ink); margin: 0; }
+
+ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  display: grid; grid-template-columns: 5px 1fr; overflow: hidden;
+}
+.item.bad .stripe { background: var(--bad); }
+.item.warn .stripe { background: var(--warn); }
+.item .body { padding: 11px 12px; display: grid; gap: 8px; min-width: 0; }
+.row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.open { all: unset; cursor: pointer; display: grid; gap: 2px; min-width: 0; flex: 1; }
+.open:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.name { font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+.meta { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.due { flex: none; text-align: right; display: grid; gap: 1px; }
+.pill { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; justify-self: end; }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.none { background: var(--bg); color: var(--muted); font-weight: 400; }
+.due small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.row2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.qty { font-variant-numeric: tabular-nums; font-size: 15px; }
+.qty b { font-size: 17px; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper button {
+  width: 40px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg);
+  font-size: 20px; line-height: 1; display: grid; place-items: center;
+}
+.used { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 7px 12px; font-size: 14px; }
+
+.empty { text-align: center; padding: 36px 20px; color: var(--muted); display: grid; gap: 8px; justify-items: center; }
+.empty h2 { font-family: var(--display); color: var(--ink); font-size: 21px; margin: 0; }
+.empty p { margin: 0; max-width: 36ch; }
+
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+}
+.bar .in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+.btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 13px 14px;
+  font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: inherit;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; font-size: 15px; justify-self: start; }
+
+/* Sheets */
+.scrim { position: fixed; inset: 0; background: rgba(5, 12, 14, .45); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--surface); width: 100%; max-width: 640px; max-height: 92%;
+  border-radius: 20px 20px 0 0; overflow-y: auto;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); display: grid; gap: 14px;
+}
+.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); justify-self: center; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sheet h2 { font-family: var(--display); font-size: 22px; margin: 0; }
+.x { border: 0; background: var(--bg); width: 36px; height: 36px; border-radius: 50%; font-size: 20px; line-height: 1; }
+.field { display: grid; gap: 6px; }
+.field > label, .field > .lbl { font-size: 14px; font-weight: 700; color: var(--muted); }
+.field input, .field select {
+  width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 11px 12px; font-size: 16px; min-height: 46px;
+}
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.code-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.code-row .btn { padding: 0 14px; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; }
+.hint.good { color: var(--ok); }
+.hint.err { color: var(--bad); }
+.hint a { color: var(--accent); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 8px 13px; font-size: 15px; cursor: pointer; }
+.seg input:checked + label { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px dashed var(--line); background: transparent; border-radius: 999px; padding: 6px 11px; font-size: 14px; }
+.actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.actions.split { grid-template-columns: 1fr 1.6fr; }
+.match { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.match .meta { margin-top: 2px; }
+
+/* Login */
+.auth { min-height: 100%; display: grid; place-items: center; padding: calc(24px + env(safe-area-inset-top)) 16px 24px; }
+.auth form { width: 100%; max-width: 400px; display: grid; gap: 14px; }
+.auth h1 { font-size: 34px; }
+.auth p.lead { margin: 0; color: var(--muted); }
+
+/* Scanner */
+.scanner { position: fixed; inset: 0; z-index: 30; background: #000; color: #fff; display: grid; grid-template-rows: 1fr auto; }
+.scanner video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scan-frame {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  width: min(82vw, 420px); height: min(42vw, 210px); border-radius: 16px;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .45); border: 3px solid rgba(255, 255, 255, .9);
+}
+.scan-frame::after {
+  content: ""; position: absolute; left: 8%; right: 8%; top: 50%; height: 2px; background: #ff5a4e; opacity: .85;
+}
+.scan-top { position: absolute; top: 0; left: 0; right: 0; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; text-align: center; font-size: 17px; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+.scan-bottom {
+  position: relative; grid-row: 2; display: flex; gap: 10px;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); background: rgba(0, 0, 0, .6);
+}
+.scan-bottom button { flex: 1; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: #fff; border-radius: 14px; padding: 13px 8px; font-weight: 700; }
+.scan-bottom button[aria-pressed="true"] { background: #fff; color: #000; }
+.scan-err { position: absolute; left: 16px; right: 16px; top: 42%; transform: translateY(-50%); background: #fff; color: #142023; border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 40;
+  background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 14px;
+  display: flex; gap: 14px; align-items: center; font-size: 15px; max-width: calc(100% - 32px); width: max-content;
+}
+.toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 0; }
+footer { font-size: 13px; color: var(--muted); text-align: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet { animation: up .22s ease-out; }
+  @keyframes up { from { transform: translateY(30px); opacity: .6; } to { transform: none; opacity: 1; } }
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="auth" id="auth" hidden>
+  <form id="auth-form" novalidate>
+    <h1>Mein Vorrat</h1>
+    <p class="lead">Melde dich an, damit dein Vorrat auf allen deinen Geräten gleich ist.</p>
+    <div class="field">
+      <label for="a-mail">E-Mail</label>
+      <input id="a-mail" type="email" autocomplete="username" inputmode="email" required>
+    </div>
+    <div class="field">
+      <label for="a-pw">Passwort</label>
+      <input id="a-pw" type="password" autocomplete="current-password" minlength="6" required>
+    </div>
+    <p class="hint err" id="a-err" hidden></p>
+    <button type="submit" class="btn primary" id="a-login">Anmelden</button>
+    <button type="button" class="btn" id="a-register">Neues Konto anlegen</button>
+    <button type="button" class="link" id="a-reset">Passwort vergessen?</button>
+  </form>
+</div>
+
+<!-- Main app -->
+<div id="app" hidden>
+<div class="wrap">
+  <header>
+    <h1>Mein Vorrat</h1>
+    <div class="head-right">
+      <div class="sync" id="sync"><span class="dot"></span><span id="sync-text">Lädt …</span></div>
+      <button class="icon-btn" id="menu-btn" type="button" aria-label="Konto und Backup">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="summary" aria-label="Übersicht">
+    <button class="stat bad" id="st-bad" aria-pressed="false"><b id="n-bad">0</b><span>abgelaufen</span></button>
+    <button class="stat warn" id="st-warn" aria-pressed="false"><b id="n-warn">0</b><span>in 0–2 Tagen</span></button>
+    <button class="stat" id="st-all" disabled><b id="n-all">0</b><span>Produkte</span></button>
+  </section>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Lagerort"></nav>
+
+  <div class="search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Suchen, z. B. Milch" autocomplete="off" aria-label="Vorrat durchsuchen">
+  </div>
+
+  <p class="note" id="note" hidden></p>
+
+  <ul class="list" id="list"></ul>
+  <div class="empty" id="empty" hidden></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<div class="bar">
+  <div class="in">
+    <button class="btn primary" id="scan-main" type="button">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg>
+      Barcode scannen
+    </button>
+    <button class="btn" id="add-btn" type="button">+ Ohne Scan</button>
+  </div>
+</div>
+</div>
+
+<!-- Add / edit sheet -->
+<div class="scrim" id="sheet-edit" hidden>
+  <form class="sheet" id="form" role="dialog" aria-modal="true" aria-labelledby="edit-title" novalidate>
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 id="edit-title">Einlagern</h2>
+      <button type="button" class="x" data-close aria-label="Schließen">×</button>
+    </div>
+
+    <div class="field">
+      <label for="f-code">Barcode</label>
+      <div class="code-row">
+        <input id="f-code" inputmode="numeric" autocomplete="off" placeholder="optional, z. B. 4014400900248">
+        <button type="button" class="btn" id="f-scan">Scannen</button>
+      </div>
+      <p class="hint" id="code-hint" hidden></p>
+    </div>
+
+    <div class="field">
+      <label for="f-name">Produkt</label>
+      <input id="f-name" list="names" autocomplete="off" placeholder="z. B. Vollmilch 3,5 %" required>
+      <datalist id="names"></datalist>
+    </div>
+
+    <div class="field">
+      <label for="f-size">Packungsgröße <span style="font-weight:400">(optional)</span></label>
+      <input id="f-size" autocomplete="off" placeholder="z. B. 1 l oder 500 g">
+    </div>
+
+    <div class="two">
+      <div class="field">
+        <label for="f-qty">Menge</label>
+        <input id="f-qty" inputmode="decimal" autocomplete="off" value="1">
+      </div>
+      <div class="field">
+        <label for="f-unit">Einheit</label>
+        <select id="f-unit"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="lbl" id="loc-lbl">Lagerort</span>
+      <div class="seg" id="f-loc" role="radiogroup" aria-labelledby="loc-lbl"></div>
+    </div>
+
+    <div class="field">
+      <span class="lbl" id="dtype-lbl">Datum auf der Packung</span>
+      <div class="seg" role="radiogroup" aria-labelledby="dtype-lbl">
+        <input type="radio" name="dtype" id="dt-mhd" value="mhd" checked><label for="dt-mhd">Mindestens haltbar bis</label>
+        <input type="radio" name="dtype" id="dt-vd" value="vd"><label for="dt-vd">Zu verbrauchen bis</label>
+      </div>
+      <input id="f-date" type="date" aria-label="Datum">
+      <div class="chips" id="date-chips">
+        <button type="button" class="chip" data-days="3">+3 Tage</button>
+        <button type="button" class="chip" data-days="7">+1 Woche</button>
+        <button type="button" class="chip" data-days="14">+2 Wochen</button>
+        <button type="button" class="chip" data-months="1">+1 Monat</button>
+        <button type="button" class="chip" data-months="6">+6 Monate</button>
+        <button type="button" class="chip" data-none>Ohne Datum</button>
+      </div>
+      <p class="hint" id="dtype-hint">MHD vorbei heißt nicht verdorben: ansehen, riechen, probieren.</p>
+    </div>
+
+    <p class="hint err" id="form-err" hidden></p>
+    <div class="actions" id="form-actions">
+      <button type="button" class="btn danger" id="del-btn" hidden>Aufgebraucht</button>
+      <button type="submit" class="btn primary" id="save-btn">Speichern</button>
+    </div>
+  </form>
+</div>
+
+<!-- Product already in stock -->
+<div class="scrim" id="sheet-scan" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="scan-title">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 id="scan-title">Schon im Vorrat</h2>
+      <button type="button" class="x" data-close aria-label="Schließen">×</button>
+    </div>
+    <p class="hint">Schon im Vorrat. Nimmst du etwas heraus, oder lagerst du mehr ein?</p>
+    <div id="scan-matches" style="display:grid;gap:8px"></div>
+    <button type="button" class="btn primary" id="scan-new">Weitere einlagern</button>
+  </div>
+</div>
+
+<!-- Account / backup -->
+<div class="scrim" id="sheet-menu" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <h2 id="menu-title">Konto</h2>
+      <button type="button" class="x" data-close aria-label="Schließen">×</button>
+    </div>
+    <p class="hint" id="menu-who"></p>
+    <button type="button" class="btn" id="exp-btn">Backup herunterladen</button>
+    <label class="btn" for="imp-file">Backup einspielen</label>
+    <input type="file" id="imp-file" accept="application/json,.json" hidden>
+    <button type="button" class="btn danger" id="logout-btn">Abmelden</button>
+    <p class="hint">Produktdaten von <a href="https://de.openfoodfacts.org" target="_blank" rel="noopener">Open Food Facts</a>, Lizenz ODbL.</p>
+  </div>
+</div>
+
+<!-- Live scanner -->
+<div class="scanner" id="scanner" hidden>
+  <video id="video" playsinline muted autoplay></video>
+  <div class="scan-frame" aria-hidden="true"></div>
+  <div class="scan-top" id="scan-msg" role="status">Barcode in den Rahmen halten</div>
+  <div class="scan-err" id="scan-err" hidden>
+    <strong id="scan-err-title">Kamera nicht verfügbar</strong>
+    <span id="scan-err-text"></span>
+  </div>
+  <div class="scan-bottom">
+    <button type="button" id="sc-torch" aria-pressed="false" hidden>Licht</button>
+    <button type="button" id="sc-type">Nummer tippen</button>
+    <button type="button" id="sc-close">Abbrechen</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-text"></span><button type="button" id="toast-undo" hidden>Rückgängig</button></div>
+
+<script type="module">
+"use strict";
+
+const FB = "https://www.gstatic.com/firebasejs/10.14.1/";
+const ZXING_URL = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+
+const LOCS = [
+  { id: "kuehl", label: "Kühlschrank" },
+  { id: "gefrier", label: "Gefrierschrank" },
+  { id: "kammer", label: "Speisekammer" }
+];
+const UNITS = ["Stück", "Packung", "Dose", "Flasche", "Glas", "Becher", "g", "kg", "ml", "l"];
+const COUNTABLE = new Set(["Stück", "Packung", "Dose", "Flasche", "Glas", "Becher"]);
+const PLURAL = { "Packung": "Packungen", "Dose": "Dosen", "Flasche": "Flaschen", "Glas": "Gläser" };
+const LS_KEY = "vorrat.demo.v1";
+
+const S = {
+  items: new Map(),
+  products: new Map(),
+  loc: "alle",
+  status: null,
+  q: "",
+  editing: null,
+  loaded: false
+};
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pad = (n) => String(n).padStart(2, "0");
+const iso = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const today = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+const parseDate = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const validDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const daysLeft = (s) => (validDate(s) ? Math.round((parseDate(s) - today()) / 864e5) : null);
+const fmtDate = (s) => parseDate(s).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" });
+const fmtShort = (s) => parseDate(s).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
+const fmtQty = (n) => Number(n).toLocaleString("de-DE", { maximumFractionDigits: 2 });
+const unitLabel = (qty, unit) => (Number(qty) === 1 ? unit : PLURAL[unit] || unit);
+const locLabel = (id) => (LOCS.find((l) => l.id === id) || LOCS[0]).label;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Firestore document ids may not contain "/" and may not be "." or ".." or __x__.
+const codeKey = (c) => {
+  const k = String(c || "").trim();
+  return /^[A-Za-z0-9_\-.~:@+]{1,120}$/.test(k) && k !== "." && k !== ".." && !/^__.*__$/.test(k) ? k : null;
+};
+function normCode(c) {
+  c = String(c || "").trim();
+  if (/^\d{12}$/.test(c)) c = "0" + c; // UPC-A -> EAN-13, so both scanners give the same key
+  return c;
+}
+function eanValid(c) {
+  if (!/^\d{8}$|^\d{12,14}$/.test(c)) return false;
+  const d = c.split("").map(Number);
+  const check = d.pop();
+  let sum = 0;
+  d.reverse().forEach((n, i) => { sum += n * (i % 2 === 0 ? 3 : 1); });
+  return (10 - (sum % 10)) % 10 === check;
+}
+
+function due(item) {
+  const n = daysLeft(item.mhd);
+  const vd = item.dtype === "vd";
+  if (n === null) return { cls: "none", label: "ohne Datum", sub: "", rank: 99999 };
+  if (n < 0) {
+    const a = -n;
+    return { cls: "bad", label: vd ? "abgelaufen" : "MHD vorbei", sub: a === 1 ? "seit gestern" : "seit " + a + " Tagen", rank: n };
+  }
+  if (n === 0) return { cls: "warn", label: "heute", sub: vd ? "verbrauchen" : "MHD endet", rank: n };
+  if (n === 1) return { cls: "warn", label: "morgen", sub: fmtShort(item.mhd), rank: n };
+  if (n === 2) return { cls: "warn", label: "übermorgen", sub: fmtShort(item.mhd), rank: n };
+  if (n < 7) return { cls: "ok", label: "in " + n + " Tagen", sub: fmtShort(item.mhd), rank: n };
+  const sub = n < 60 ? "noch " + n + " Tage" : "noch " + Math.round(n / 30) + " Monate";
+  return { cls: "ok", label: fmtDate(item.mhd), sub, rank: n };
+}
+
+function clean(raw, id) {
+  const it = raw || {};
+  const qty = Number(it.qty);
+  return {
+    id,
+    name: String(it.name || "Unbenannt").slice(0, 120),
+    size: String(it.size || "").slice(0, 40),
+    qty: isFinite(qty) && qty >= 0 ? qty : 1,
+    unit: UNITS.includes(it.unit) ? it.unit : "Stück",
+    loc: LOCS.some((l) => l.id === it.loc) ? it.loc : "kuehl",
+    mhd: validDate(it.mhd) ? it.mhd : "",
+    dtype: it.dtype === "vd" ? "vd" : "mhd",
+    code: String(it.code || "").slice(0, 120),
+    added: String(it.added || "")
+  };
+}
+const body = (item) => { const b = Object.assign({}, item); delete b.id; return b; };
+
+/* ---------- storage backends ---------- */
+// Demo backend: this browser only. Used until config.js holds a real Firebase config.
+function demoBackend() {
+  const read = () => { try { const o = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); return { items: o.items || {}, products: o.products || {} }; } catch (e) { return { items: {}, products: {} }; } };
+  const write = (o) => { try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) { toast("Speichern auf diesem Gerät nicht möglich."); } };
+  const patch = (fn) => { const o = read(); fn(o); write(o); };
+  return {
+    kind: "demo",
+    start() {
+      const o = read();
+      S.items = new Map(Object.entries(o.items).map(([id, v]) => [id, clean(v, id)]));
+      S.products = new Map(Object.entries(o.products));
+      S.loaded = true;
+      setSync("warn", "Demo");
+      showNote("Demo-Modus: Noch keine Firebase-Verbindung, die Daten liegen nur in diesem Browser. Trage deine Firebase-Konfiguration in config.js ein.");
+      $("foot").textContent = "";
+      render(); fillNames();
+    },
+    putItem(item) { S.items.set(item.id, item); patch((o) => { o.items[item.id] = body(item); }); render(); },
+    delItem(id) { S.items.delete(id); patch((o) => { delete o.items[id]; }); render(); },
+    putProduct(k, p) { S.products.set(k, p); patch((o) => { o.products[k] = p; }); },
+    async signOut() {}
+  };
+}
+
+// Firebase backend: Firestore with offline cache, each user sees only users/<uid>/...
+async function firebaseBackend(config) {
+  const [appM, authM, fsM] = await Promise.all([
+    import(FB + "firebase-app.js"),
+    import(FB + "firebase-auth.js"),
+    import(FB + "firebase-firestore.js")
+  ]);
+  const cfg = Object.assign({}, config);
+  const dbId = String(cfg.databaseId || "(default)").trim() || "(default)";
+  delete cfg.databaseId;
+  const app = appM.initializeApp(cfg);
+  const auth = authM.getAuth(app);
+  let fs;
+  try {
+    fs = fsM.initializeFirestore(app, { localCache: fsM.persistentLocalCache({ tabManager: fsM.persistentMultipleTabManager() }) }, dbId);
+  } catch (e) {
+    fs = fsM.getFirestore(app, dbId);
+  }
+  let user = null, unsubs = [], loadTimer = null;
+
+  const fsError = (e) => {
+    const c = e && e.code;
+    if (c === "permission-denied") return "Kein Zugriff auf die Datenbank. Prüfe die Firestore-Regeln (Einrichtungsschritt 3) und ob in config.js die richtige databaseId steht.";
+    if (c === "not-found" || c === "failed-precondition") return "Die Firestore-Datenbank wurde nicht gefunden. Ist sie angelegt (Schritt 3), und stimmt die databaseId in config.js?";
+    if (c === "resource-exhausted") return "Das kostenlose Tageslimit von Firebase ist erreicht. Morgen geht es weiter.";
+    return "Speichern fehlgeschlagen: " + (e && e.message ? e.message : "unbekannter Fehler");
+  };
+  const write = (p) => p.catch((e) => { showNote(fsError(e)); });
+
+  function startData() {
+    const base = ["users", user.uid];
+    S.loaded = false; render();
+    loadTimer = setTimeout(() => { if (!S.loaded) showNote("Die Datenbank antwortet nicht. Bist du online? Sobald die Verbindung steht, lädt dein Vorrat."); }, 10000);
+    unsubs.push(fsM.onSnapshot(fsM.collection(fs, ...base, "items"), { includeMetadataChanges: true }, (snap) => {
+      S.items = new Map(snap.docs.map((d) => [d.id, clean(d.data(), d.id)]));
+      S.loaded = true;
+      if (!snap.metadata.fromCache) { clearTimeout(loadTimer); hideNote(); }
+      updateSync(snap.metadata);
+      render();
+    }, (e) => { clearTimeout(loadTimer); S.loaded = true; showNote(fsError(e)); render(); }));
+    unsubs.push(fsM.onSnapshot(fsM.collection(fs, ...base, "products"), (snap) => {
+      S.products = new Map(snap.docs.map((d) => [d.id, d.data()]));
+      fillNames();
+    }, () => {}));
+  }
+  function updateSync(meta) {
+    if (!navigator.onLine) setSync("warn", "Offline");
+    else if (meta.hasPendingWrites) setSync("warn", "Speichert …");
+    else if (meta.fromCache) setSync("warn", "Verbinde …");
+    else setSync("ok", "Synchron");
+  }
+  window.addEventListener("online", () => setSync("warn", "Verbinde …"));
+  window.addEventListener("offline", () => setSync("warn", "Offline"));
+
+  const be = {
+    kind: "firebase",
+    start() {
+      authM.onAuthStateChanged(auth, (u) => {
+        unsubs.forEach((f) => f()); unsubs = []; clearTimeout(loadTimer);
+        S.items = new Map(); S.products = new Map();
+        user = u;
+        if (!u) { showAuth(); return; }
+        showApp();
+        $("menu-who").textContent = "Angemeldet als " + (u.email || "unbekannt") + ". Melde dich auf jedem Gerät mit diesem Konto an.";
+        $("foot").textContent = "Synchronisiert über dein Konto " + (u.email || "") + ". Funktioniert auch offline.";
+        startData();
+      });
+    },
+    putItem(item) {
+      if (!user) return;
+      write(fsM.setDoc(fsM.doc(fs, "users", user.uid, "items", item.id), body(item)));
+    },
+    delItem(id) {
+      if (!user) return;
+      write(fsM.deleteDoc(fsM.doc(fs, "users", user.uid, "items", id)));
+    },
+    putProduct(k, p) {
+      if (!user) return;
+      S.products.set(k, p);
+      fsM.setDoc(fsM.doc(fs, "users", user.uid, "products", k), p).catch(() => {});
+    },
+    signIn: (m, p) => authM.signInWithEmailAndPassword(auth, m, p),
+    register: (m, p) => authM.createUserWithEmailAndPassword(auth, m, p),
+    reset: (m) => { auth.languageCode = "de"; return authM.sendPasswordResetEmail(auth, m); },
+    signOut: () => authM.signOut(auth)
+  };
+  return be;
+}
+
+let backend = null;
+
+/* ---------- screens ---------- */
+function showAuth() { $("app").hidden = true; $("auth").hidden = false; closeSheets(); }
+function showApp() { $("auth").hidden = true; $("app").hidden = false; }
+function setSync(cls, text) { $("sync").className = "sync " + cls; $("sync-text").textContent = text; }
+
+const AUTH_ERR = {
+  "auth/invalid-credential": "E-Mail oder Passwort ist falsch.",
+  "auth/wrong-password": "E-Mail oder Passwort ist falsch.",
+  "auth/user-not-found": "Zu dieser E-Mail gibt es kein Konto. Lege ein neues an.",
+  "auth/invalid-email": "Diese E-Mail-Adresse ist ungültig.",
+  "auth/missing-password": "Bitte gib ein Passwort ein.",
+  "auth/weak-password": "Das Passwort braucht mindestens 6 Zeichen.",
+  "auth/email-already-in-use": "Für diese E-Mail gibt es schon ein Konto. Melde dich an.",
+  "auth/too-many-requests": "Zu viele Versuche. Warte kurz und versuche es dann erneut.",
+  "auth/network-request-failed": "Keine Internetverbindung.",
+  "auth/operation-not-allowed": "Die Anmeldung per E-Mail ist in Firebase noch nicht aktiviert (Einrichtungsschritt 2).",
+  "auth/admin-restricted-operation": "Neue Konten sind für diese App abgeschaltet.",
+  "auth/unauthorized-domain": "Diese Adresse ist in Firebase nicht freigegeben (Einrichtungsschritt 6).",
+  "auth/invalid-api-key": "Die Firebase-Konfiguration in config.js stimmt nicht.",
+  "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "Die Firebase-Konfiguration in config.js stimmt nicht."
+};
+function authError(e) {
+  const el = $("a-err");
+  el.className = "hint err";
+  el.textContent = AUTH_ERR[e && e.code] || "Das hat nicht geklappt: " + ((e && e.message) || "unbekannter Fehler");
+  el.hidden = false;
+}
+async function authRun(fn, btn) {
+  const mail = $("a-mail").value.trim(), pw = $("a-pw").value;
+  $("a-err").hidden = true;
+  if (!mail) { authError({ code: "auth/invalid-email" }); return; }
+  btn.disabled = true;
+  try { await fn(mail, pw); } catch (e) { authError(e); } finally { btn.disabled = false; }
+}
+$("auth-form").addEventListener("submit", (e) => { e.preventDefault(); authRun(backend.signIn, $("a-login")); });
+$("a-register").addEventListener("click", () => authRun(backend.register, $("a-register")));
+$("a-reset").addEventListener("click", async () => {
+  const mail = $("a-mail").value.trim();
+  if (!mail) { authError({ code: "auth/invalid-email" }); return; }
+  try {
+    await backend.reset(mail);
+    const el = $("a-err"); el.className = "hint good"; el.textContent = "Wir haben dir eine E-Mail zum Zurücksetzen geschickt. Schau auch im Spam-Ordner."; el.hidden = false;
+  } catch (e) { authError(e); }
+});
+
+/* ---------- rendering ---------- */
+function allItems() { return [...S.items.values()]; }
+function filtered() {
+  const q = S.q.trim().toLowerCase();
+  return allItems()
+    .map((it) => ({ it, d: due(it) }))
+    .filter(({ it, d }) =>
+      (S.loc === "alle" || it.loc === S.loc) &&
+      (!S.status || d.cls === S.status) &&
+      (!q || it.name.toLowerCase().includes(q) || it.code.includes(q)))
+    .sort((a, b) => a.d.rank - b.d.rank || a.it.name.localeCompare(b.it.name, "de"));
+}
+
+function render() {
+  const all = allItems();
+  const ds = all.map(due);
+  $("n-bad").textContent = ds.filter((d) => d.cls === "bad").length;
+  $("n-warn").textContent = ds.filter((d) => d.cls === "warn").length;
+  $("n-all").textContent = all.length;
+  $("st-bad").setAttribute("aria-pressed", String(S.status === "bad"));
+  $("st-warn").setAttribute("aria-pressed", String(S.status === "warn"));
+
+  const counts = { alle: all.length };
+  LOCS.forEach((l) => (counts[l.id] = all.filter((i) => i.loc === l.id).length));
+  $("tabs").innerHTML = [{ id: "alle", label: "Alle" }].concat(LOCS).map((l) =>
+    '<button class="tab" role="tab" data-loc="' + l.id + '" aria-selected="' + (S.loc === l.id) + '">' +
+    esc(l.label) + ' <span class="n">' + counts[l.id] + "</span></button>").join("");
+
+  const rows = filtered();
+  $("list").innerHTML = rows.map(({ it, d }) => {
+    const ctrl = COUNTABLE.has(it.unit)
+      ? '<div class="stepper"><button type="button" data-act="minus" aria-label="Eins weniger ' + esc(it.name) + '">−</button>' +
+        '<button type="button" data-act="plus" aria-label="Eins mehr ' + esc(it.name) + '">+</button></div>'
+      : '<button type="button" class="used" data-act="used">Aufgebraucht</button>';
+    const meta = [locLabel(it.loc), it.size, it.dtype === "vd" && it.mhd ? "zu verbrauchen bis" : ""].filter(Boolean).join(" · ");
+    return '<li class="item ' + d.cls + '" data-id="' + esc(it.id) + '"><span class="stripe"></span><div class="body">' +
+      '<div class="row1"><button type="button" class="open" data-act="edit"><span class="name">' + esc(it.name) + '</span>' +
+      '<span class="meta">' + esc(meta) + "</span></button>" +
+      '<div class="due"><span class="pill ' + d.cls + '">' + esc(d.label) + "</span>" + (d.sub ? "<small>" + esc(d.sub) + "</small>" : "") + "</div></div>" +
+      '<div class="row2"><span class="qty"><b>' + fmtQty(it.qty) + "</b> " + esc(unitLabel(it.qty, it.unit)) + "</span>" + ctrl + "</div>" +
+      "</div></li>";
+  }).join("");
+
+  const empty = $("empty");
+  if (rows.length) empty.hidden = true;
+  else {
+    empty.hidden = false;
+    if (!S.loaded) empty.innerHTML = "<p>Vorrat wird geladen …</p>";
+    else if (!all.length) empty.innerHTML = "<h2>Noch nichts eingelagert</h2><p>Tippe unten auf „Barcode scannen“ und halte die Kamera auf den Strichcode. Bekannte Produkte füllt die App selbst aus.</p>";
+    else empty.innerHTML = "<p>Keine Treffer für diese Auswahl.</p>";
+  }
+  if (!$("sheet-scan").hidden) renderMatches();
+}
+
+function fillNames() {
+  const names = new Set();
+  for (const p of S.products.values()) if (p && p.name) names.add(p.name);
+  for (const it of allItems()) names.add(it.name);
+  $("names").innerHTML = [...names].sort((a, b) => a.localeCompare(b, "de")).map((n) => '<option value="' + esc(n) + '"></option>').join("");
+}
+
+/* ---------- notes & toast ---------- */
+function showNote(t) { const n = $("note"); n.textContent = t; n.hidden = false; }
+function hideNote() { if (backend && backend.kind !== "demo") $("note").hidden = true; }
+let toastTimer = null, undoFn = null;
+function toast(text, undo) {
+  $("toast-text").textContent = text;
+  undoFn = undo || null;
+  $("toast-undo").hidden = !undo;
+  $("toast").hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $("toast").hidden = true; undoFn = null; }, undo ? 6000 : 3500);
+}
+$("toast-undo").addEventListener("click", () => { const f = undoFn; $("toast").hidden = true; undoFn = null; if (f) f(); });
+
+function putItem(item) { backend.putItem(item); }
+function consume(it) {
+  const copy = Object.assign({}, it);
+  backend.delItem(it.id);
+  toast(it.name + " entfernt.", () => putItem(copy));
+}
+
+/* ---------- sheets ---------- */
+let lastFocus = null;
+function openSheet(id) {
+  lastFocus = document.activeElement;
+  ["sheet-edit", "sheet-scan", "sheet-menu"].forEach((s) => { if (s !== id) $(s).hidden = true; });
+  $(id).hidden = false;
+}
+function closeSheets() {
+  ["sheet-edit", "sheet-scan", "sheet-menu"].forEach((s) => ($(s).hidden = true));
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeSheets));
+document.querySelectorAll(".scrim").forEach((s) => s.addEventListener("click", (e) => { if (e.target === s) closeSheets(); }));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("scanner").hidden) Scanner.close(); else closeSheets(); } });
+
+$("f-unit").innerHTML = UNITS.map((u) => "<option>" + u + "</option>").join("");
+$("f-loc").innerHTML = LOCS.map((l) =>
+  '<input type="radio" name="loc" id="loc-' + l.id + '" value="' + l.id + '"><label for="loc-' + l.id + '">' + l.label + "</label>").join("");
+
+function setForm(v) {
+  $("f-code").value = v.code || "";
+  $("f-name").value = v.name || "";
+  $("f-size").value = v.size || "";
+  $("f-qty").value = v.qty != null ? fmtQty(v.qty) : "1";
+  $("f-unit").value = v.unit || "Stück";
+  const loc = v.loc || (S.loc !== "alle" ? S.loc : "kuehl");
+  $("loc-" + loc).checked = true;
+  $(v.dtype === "vd" ? "dt-vd" : "dt-mhd").checked = true;
+  $("f-date").value = v.mhd || "";
+  updateDtypeHint();
+  $("form-err").hidden = true;
+}
+
+function openEdit(item) {
+  S.editing = item && item.id ? item.id : null;
+  $("edit-title").textContent = S.editing ? "Bearbeiten" : "Einlagern";
+  $("del-btn").hidden = !S.editing;
+  $("form-actions").className = "actions" + (S.editing ? " split" : "");
+  setForm(item || {});
+  setCodeHint(null);
+  openSheet("sheet-edit");
+  if (!S.editing && item && item.code) lookupCode(true);
+}
+
+function setCodeHint(h) {
+  const el = $("code-hint");
+  if (!h) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false; el.className = "hint " + (h.cls || ""); el.innerHTML = h.html;
+}
+
+/* ---------- product lookup: own memory first, then Open Food Facts ---------- */
+const offCache = new Map();
+async function fetchOFF(code) {
+  if (offCache.has(code)) return offCache.get(code);
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 7000);
+  try {
+    const url = "https://world.openfoodfacts.org/api/v2/product/" + encodeURIComponent(code) +
+      ".json?lc=de&fields=product_name,product_name_de,generic_name_de,generic_name,brands,quantity,categories_tags";
+    const r = await fetch(url, { signal: ctl.signal });
+    if (r.status === 404) { offCache.set(code, null); return null; }
+    if (!r.ok) throw new Error("http " + r.status);
+    const j = await r.json();
+    const p = j && j.status === 1 ? j.product : null;
+    offCache.set(code, p);
+    return p;
+  } finally { clearTimeout(t); }
+}
+function offToItem(p) {
+  let name = (p.product_name_de || p.product_name || p.generic_name_de || p.generic_name || "").trim();
+  const brand = String(p.brands || "").split(",")[0].trim();
+  if (brand && name && !name.toLowerCase().includes(brand.toLowerCase())) name = brand + " " + name;
+  if (!name) name = brand;
+  const cats = (p.categories_tags || []).join(" ");
+  let loc = null;
+  if (/frozen/.test(cats)) loc = "gefrier";
+  else if (/(dairies|dairy|cheeses|yogurts|milks|meats|fishes|seafood|fresh|butters|creams|eggs|sausages|hams)/.test(cats)) loc = "kuehl";
+  else if (cats) loc = "kammer";
+  return { name: name.slice(0, 120), size: String(p.quantity || "").slice(0, 40), loc };
+}
+
+let lookupToken = 0;
+async function lookupCode(fill) {
+  const code = normCode($("f-code").value);
+  const token = ++lookupToken;
+  if (!code) { setCodeHint(null); return; }
+  if (code !== $("f-code").value.trim()) $("f-code").value = code;
+  const k = codeKey(code);
+  const p = k && S.products.get(k);
+  if (p) {
+    if (fill) {
+      if (p.name) $("f-name").value = p.name;
+      if (p.size != null) $("f-size").value = p.size;
+      if (p.unit && UNITS.includes(p.unit)) $("f-unit").value = p.unit;
+      if (p.loc && $("loc-" + p.loc)) $("loc-" + p.loc).checked = true;
+      if (p.qty != null) $("f-qty").value = fmtQty(p.qty);
+      $(p.dtype === "vd" ? "dt-vd" : "dt-mhd").checked = true;
+      updateDtypeHint();
+    }
+    setCodeHint({ cls: "good", html: "Bekanntes Produkt, Angaben übernommen. Jetzt nur noch das Datum." });
+    return;
+  }
+  setCodeHint({ html: "Suche bei Open Food Facts …" });
+  try {
+    const off = await fetchOFF(code);
+    if (token !== lookupToken) return;
+    if (off) {
+      const g = offToItem(off);
+      if (fill || !$("f-name").value) {
+        if (g.name) $("f-name").value = g.name;
+        if (g.size) $("f-size").value = g.size;
+        if (g.loc && !S.editing) $("loc-" + g.loc).checked = true;
+      }
+      setCodeHint({ cls: "good", html: "Gefunden bei Open Food Facts. Prüfe den Namen und trag das Datum ein." });
+    } else {
+      setCodeHint({ html: "Dieses Produkt kennt Open Food Facts nicht. Gib den Namen einmal ein, die App merkt ihn sich." });
+      if (fill) $("f-name").focus({ preventScroll: true });
+    }
+  } catch (e) {
+    if (token !== lookupToken) return;
+    setCodeHint({ html: "Produktdatenbank gerade nicht erreichbar. Gib den Namen ein, die App merkt ihn sich." });
+  }
+}
+$("f-code").addEventListener("change", () => lookupCode(!$("f-name").value));
+
+function updateDtypeHint() {
+  $("dtype-hint").textContent = $("dt-vd").checked
+    ? "Nach diesem Datum nicht mehr essen. Typisch für Hackfleisch, frischen Fisch und Geflügel."
+    : "MHD vorbei heißt nicht verdorben: ansehen, riechen, probieren.";
+}
+document.querySelectorAll('input[name="dtype"]').forEach((r) => r.addEventListener("change", updateDtypeHint));
+
+$("date-chips").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  if (b.hasAttribute("data-none")) { $("f-date").value = ""; return; }
+  const d = today();
+  if (b.dataset.days) d.setDate(d.getDate() + Number(b.dataset.days));
+  if (b.dataset.months) d.setMonth(d.getMonth() + Number(b.dataset.months));
+  $("f-date").value = iso(d);
+});
+
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("f-name").value.trim();
+  const qty = Number(String($("f-qty").value).replace(/\s/g, "").replace(",", "."));
+  const err = $("form-err");
+  if (!name) { err.textContent = "Bitte gib an, was du einlagerst."; err.hidden = false; $("f-name").focus(); return; }
+  if (!isFinite(qty) || qty <= 0) { err.textContent = "Die Menge muss größer als 0 sein, z. B. 1 oder 0,5."; err.hidden = false; $("f-qty").focus(); return; }
+  const locEl = document.querySelector('input[name="loc"]:checked');
+  const prev = S.editing ? S.items.get(S.editing) : null;
+  const item = clean({
+    name, qty,
+    size: $("f-size").value.trim(),
+    unit: $("f-unit").value,
+    loc: locEl ? locEl.value : "kuehl",
+    mhd: $("f-date").value,
+    dtype: $("dt-vd").checked ? "vd" : "mhd",
+    code: normCode($("f-code").value),
+    added: prev ? prev.added : new Date().toISOString()
+  }, S.editing || uid());
+  const wasEditing = !!S.editing;
+  putItem(item);
+  const k = codeKey(item.code);
+  if (k) {
+    const p = { name: item.name, size: item.size, unit: item.unit, loc: item.loc, dtype: item.dtype, qty: item.qty };
+    const old = S.products.get(k);
+    if (!old || JSON.stringify(old) !== JSON.stringify(p)) backend.putProduct(k, p);
+  }
+  fillNames();
+  closeSheets();
+  toast(wasEditing ? "Gespeichert." : item.name + " eingelagert.");
+});
+
+$("del-btn").addEventListener("click", () => {
+  const it = S.items.get(S.editing);
+  closeSheets();
+  if (it) consume(it);
+});
+
+$("add-btn").addEventListener("click", () => openEdit(null));
+$("f-scan").addEventListener("click", () => Scanner.open((code) => { $("f-code").value = code; lookupCode(true); }));
+$("scan-main").addEventListener("click", () => Scanner.open(onMainScan));
+
+/* ---------- list interactions ---------- */
+$("list").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const li = b.closest(".item"); if (!li) return;
+  const it = S.items.get(li.dataset.id); if (!it) return;
+  const act = b.dataset.act;
+  if (act === "edit") return openEdit(it);
+  if (act === "plus") putItem(Object.assign({}, it, { qty: it.qty + 1 }));
+  if (act === "minus") { if (it.qty <= 1) consume(it); else putItem(Object.assign({}, it, { qty: it.qty - 1 })); }
+  if (act === "used") consume(it);
+});
+$("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-loc]"); if (!b) return; S.loc = b.dataset.loc; render(); });
+$("st-bad").addEventListener("click", () => { S.status = S.status === "bad" ? null : "bad"; render(); });
+$("st-warn").addEventListener("click", () => { S.status = S.status === "warn" ? null : "warn"; render(); });
+$("q").addEventListener("input", (e) => { S.q = e.target.value; render(); });
+
+/* ---------- scan result ---------- */
+let scanCode = null;
+function onMainScan(code) {
+  const matches = allItems().filter((i) => i.code === code);
+  if (!matches.length) { openEdit({ code }); return; }
+  scanCode = code;
+  const p = S.products.get(codeKey(code));
+  $("scan-title").textContent = (p && p.name) || matches[0].name;
+  openSheet("sheet-scan");
+  renderMatches();
+}
+function renderMatches() {
+  const matches = allItems().filter((i) => i.code === scanCode).sort((a, b) => due(a).rank - due(b).rank);
+  if (!matches.length) { $("scan-matches").innerHTML = '<p class="hint">Nichts mehr davon im Vorrat.</p>'; return; }
+  $("scan-matches").innerHTML = matches.map((it) => {
+    const d = due(it);
+    const single = COUNTABLE.has(it.unit) && it.qty > 1;
+    return '<div class="match" data-id="' + esc(it.id) + '"><div><div><b>' + fmtQty(it.qty) + " " + esc(unitLabel(it.qty, it.unit)) + '</b> <span class="pill ' + d.cls + '">' + esc(d.label) + "</span></div>" +
+      '<div class="meta">' + esc(locLabel(it.loc)) + (d.sub ? " · " + esc(d.sub) : "") + "</div></div>" +
+      '<button type="button" class="btn" data-take>' + (single ? "1 entnehmen" : "Aufgebraucht") + "</button></div>";
+  }).join("");
+}
+$("scan-matches").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-take]"); if (!b) return;
+  const it = S.items.get(b.closest(".match").dataset.id); if (!it) return;
+  if (COUNTABLE.has(it.unit) && it.qty > 1) { putItem(Object.assign({}, it, { qty: it.qty - 1 })); toast("1 " + it.unit + " " + it.name + " entnommen."); }
+  else consume(it);
+});
+$("scan-new").addEventListener("click", () => openEdit({ code: scanCode }));
+
+/* ---------- live barcode scanner ---------- */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src; s.async = true; s.onload = resolve; s.onerror = () => reject(new Error("load"));
+    document.head.appendChild(s);
+  });
+}
+
+const Scanner = {
+  stream: null, timer: null, active: false, onCode: null, detector: null, zx: null, canvas: null,
+  last: null, lastHits: 0,
+
+  async open(onCode) {
+    this.onCode = onCode;
+    this.last = null; this.lastHits = 0;
+    $("scanner").hidden = false;
+    $("scan-err").hidden = true;
+    $("sc-torch").hidden = true; $("sc-torch").setAttribute("aria-pressed", "false");
+    $("scan-msg").textContent = "Kamera wird gestartet …";
+
+    if (!window.isSecureContext) return this.fail("Die Kamera funktioniert nur, wenn die App über https geöffnet wird.");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return this.fail("Dieser Browser kann nicht auf die Kamera zugreifen. Tippe die Nummer unter dem Strichcode ein.");
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+      });
+    } catch (e) {
+      const n = e && e.name;
+      if (n === "NotAllowedError" || n === "SecurityError") return this.fail("Du hast den Kamerazugriff nicht erlaubt. Erlaube ihn in den Einstellungen deines Browsers für diese Seite und versuche es erneut.");
+      if (n === "NotFoundError" || n === "OverconstrainedError") return this.fail("Keine Kamera gefunden.");
+      if (n === "NotReadableError") return this.fail("Die Kamera wird gerade von einer anderen App benutzt.");
+      return this.fail("Die Kamera ließ sich nicht starten.");
+    }
+    if ($("scanner").hidden) { this.stopStream(); return; } // closed while waiting for permission
+    const v = $("video");
+    v.srcObject = this.stream;
+    try { await v.play(); } catch (e) { /* autoplay muted should work */ }
+
+    const track = this.stream.getVideoTracks()[0];
+    try {
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (caps.torch) $("sc-torch").hidden = false;
+      if (caps.focusMode && caps.focusMode.includes("continuous")) track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+    } catch (e) {}
+
+    await this.setupDecoder();
+    if (!this.detector && !this.zx) return this.fail("Der Barcode-Leser konnte nicht geladen werden. Prüfe die Internetverbindung oder tippe die Nummer ein.", "Scanner nicht verfügbar");
+    $("scan-msg").textContent = "Barcode in den Rahmen halten";
+    this.active = true;
+    this.tick();
+  },
+
+  async setupDecoder() {
+    if (this.detector || this.zx) return;
+    if ("BarcodeDetector" in window) {
+      try {
+        const want = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf"];
+        const sup = await window.BarcodeDetector.getSupportedFormats();
+        const formats = want.filter((f) => sup.includes(f));
+        if (formats.includes("ean_13")) { this.detector = new window.BarcodeDetector({ formats }); return; }
+      } catch (e) {}
+    }
+    try {
+      if (!window.ZXing) { $("scan-msg").textContent = "Barcode-Leser wird geladen …"; await loadScript(ZXING_URL); }
+      const Z = window.ZXing;
+      const hints = new Map();
+      const F = Z.BarcodeFormat;
+      hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF]);
+      hints.set(Z.DecodeHintType.TRY_HARDER, true);
+      const reader = new Z.MultiFormatReader();
+      reader.setHints(hints);
+      this.zx = reader;
+      this.canvas = document.createElement("canvas");
+    } catch (e) { this.zx = null; }
+  },
+
+  zxDecode() {
+    const v = $("video");
+    const vw = v.videoWidth, vh = v.videoHeight;
+    if (!vw || !vh) return null;
+    // Only the band behind the on-screen frame: faster and fewer false reads.
+    const cw = vw * 0.9, ch = Math.min(vh * 0.5, cw * 0.6);
+    const sx = (vw - cw) / 2, sy = vh * 0.42 - ch / 2;
+    const scale = Math.min(1, 1000 / cw);
+    const c = this.canvas;
+    c.width = Math.round(cw * scale); c.height = Math.round(ch * scale);
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(v, sx, Math.max(0, sy), cw, ch, 0, 0, c.width, c.height);
+    const Z = window.ZXing;
+    try {
+      const src = new Z.HTMLCanvasElementLuminanceSource(c);
+      const res = this.zx.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(src)));
+      return res ? res.getText() : null;
+    } catch (e) { return null; }
+  },
+
+  async tick() {
+    if (!this.active) return;
+    let code = null;
+    try {
+      if (this.detector) {
+        const r = await this.detector.detect($("video"));
+        if (r && r.length) code = r[0].rawValue;
+      } else if (this.zx) {
+        code = this.zxDecode();
+      }
+    } catch (e) {}
+    if (!this.active) return;
+    if (code && this.accept(code)) return;
+    this.timer = setTimeout(() => this.tick(), this.detector ? 90 : 140);
+  },
+
+  accept(raw) {
+    const code = normCode(raw);
+    const numeric = /^\d+$/.test(code);
+    if (numeric && [8, 13].includes(code.length)) {
+      if (!eanValid(code)) return false;           // checksum wrong: misread, keep scanning
+    } else {
+      // other formats have no checksum we can verify: require the same value twice in a row
+      if (this.last === code) this.lastHits++; else { this.last = code; this.lastHits = 1; }
+      if (this.lastHits < 2) return false;
+    }
+    if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
+    const cb = this.onCode;
+    this.close();
+    if (cb) cb(code);
+    return true;
+  },
+
+  fail(text, title) {
+    this.active = false;
+    this.stopStream();
+    $("scan-err-title").textContent = title || "Kamera nicht verfügbar";
+    $("scan-msg").textContent = "";
+    $("scan-err-text").textContent = text;
+    $("scan-err").hidden = false;
+  },
+
+  stopStream() {
+    if (this.stream) { this.stream.getTracks().forEach((t) => t.stop()); this.stream = null; }
+    $("video").srcObject = null;
+  },
+
+  close() {
+    this.active = false;
+    clearTimeout(this.timer);
+    this.stopStream();
+    $("scanner").hidden = true;
+  }
+};
+$("sc-close").addEventListener("click", () => Scanner.close());
+$("sc-type").addEventListener("click", () => {
+  const forForm = !$("sheet-edit").hidden;
+  Scanner.close();
+  if (!forForm) openEdit(null);
+  setTimeout(() => $("f-code").focus(), 80);
+});
+$("sc-torch").addEventListener("click", async () => {
+  const b = $("sc-torch");
+  const on = b.getAttribute("aria-pressed") !== "true";
+  try {
+    await Scanner.stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: on }] });
+    b.setAttribute("aria-pressed", String(on));
+  } catch (e) { b.hidden = true; }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && !$("scanner").hidden) Scanner.close(); // free the camera when the app goes to background
+  if (!document.hidden) render();
+});
+
+/* ---------- menu: backup & logout ---------- */
+$("menu-btn").addEventListener("click", () => openSheet("sheet-menu"));
+$("logout-btn").addEventListener("click", async () => { closeSheets(); await backend.signOut(); });
+$("exp-btn").addEventListener("click", () => {
+  const data = { app: "mein-vorrat", version: 1, exported: new Date().toISOString(),
+    items: allItems(),
+    products: Object.fromEntries(S.products) };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "vorrat-backup-" + iso(new Date()) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast("Backup gespeichert.");
+});
+$("imp-file").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data || !Array.isArray(data.items)) throw new Error("format");
+    let n = 0;
+    for (const raw of data.items) { const id = codeKey(raw.id) || uid(); putItem(clean(raw, id)); n++; }
+    for (const [k, p] of Object.entries(data.products || {})) { const key = codeKey(k); if (key && p && typeof p === "object") backend.putProduct(key, p); }
+    closeSheets();
+    toast(n + " Einträge eingespielt.");
+  } catch (err) { toast("Diese Datei ist kein Vorrat-Backup."); }
+});
+
+/* ---------- start ---------- */
+function scheduleMidnight() {
+  const n = new Date(); const next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 5);
+  setTimeout(() => { render(); scheduleMidnight(); }, next - n);
+}
+
+async function boot() {
+  let cfg = null;
+  try { cfg = (await import("./config.js")).firebaseConfig; } catch (e) { cfg = null; }
+  const configured = cfg && cfg.apiKey && !/^DEIN/.test(cfg.apiKey);
+  if (configured) {
+    try { backend = await firebaseBackend(cfg); }
+    catch (e) {
+      showApp();
+      setSync("warn", "Fehler");
+      showNote("Firebase konnte nicht geladen werden. Prüfe die Internetverbindung und lade die App neu.");
+      S.loaded = true; render();
+      return;
+    }
+  } else {
+    backend = demoBackend();
+    showApp();
+  }
+  backend.start();
+  scheduleMidnight();
+}
+boot();
+
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
